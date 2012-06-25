@@ -1,0 +1,2 @@
+class InventoryShippingEventsController < ApplicationController
+end
