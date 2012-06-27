@@ -9,6 +9,18 @@ Spree::Order.class_eval do
   end
   
   
+  def need_ship?
+    inventory_units_amount = self.inventory_units.where("state = ?",'sold').count
+    e_count = 0
+    self.shipments.first.shipping_events.un_shipped.each do |se|
+      se.inventory_units.each do |unit|
+        e_count += 1 if unit.state == 'sold'
+      end
+    end
+    raise "valid need ship failed: " + self.number if (inventory_units_amount != e_count)
+    return true if inventory_units_amount > 0
+    return false
+  end
   
   def self.export_avaible_shipments_to_csv(display_hash)
     contract_charge_code = "S9"
