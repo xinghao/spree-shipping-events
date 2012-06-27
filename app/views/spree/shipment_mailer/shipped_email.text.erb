@@ -1,0 +1,37 @@
+Dear Customer,
+
+Hooray!! Your order #<%=@shipment.order.number%> has been <%=@shipment.shipment_statement()%>. Check out the shipping details below to track your order to your door.
+
+============================================================
+Shipment Summary:
+<% @shipment.group_shipped_inventory_units.each do |key, value| %>
+Parcel Tracking number: <%=value["tracking"]%>
+Parcel was shipped at: <%=value["shipped_at"]%>
+Parcel includes:
+<% value["units"].each_pair do |key, unit| %>
+<%=unit["sku"]%> <%=unit["name"]%> (<%=unit["quantity"]%>)
+<% end %>
+<% end %>
+============================================================
+<% if !@shipment.order.ship_address.nil? %>
+Shipping address:
+<%=@shipment.order.ship_address.firstname%> <%=@shipment.order.ship_address.lastname%>
+<%=@shipment.order.ship_address.address1%>
+<%=@shipment.order.ship_address.address2 if !@shipment.order.ship_address.address2.nil? %>
+<%=@shipment.order.ship_address.city %>, <%=@shipment.order.ship_address.state if Spree::Config[:address_requires_state] %>, <%=@shipment.order.ship_address.zipcode %>
+============================================================
+<%end%>
+<% if !@shipment.all_shipped? %>
+Items still remaining to be shipped:
+<% @shipment.group_backordered_inventory_units.each_pair do |key, unit| %>
+<%=unit["sku"]%> <%=unit["name"]%> (<%=unit["quantity"]%>)
+<% end %>
+============================================================
+<% end %>
+
+Your package has been shipped by Australia Post. To track the order go to http://www.australiapost.com.au/track and enter the tracking number in.
+
+If you have any questions about this order or would like to contact our customer service team please call 1300 651 134.
+
+Thank you for you for shopping with us.
+- The team at Better Be Quick
