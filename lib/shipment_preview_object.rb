@@ -16,7 +16,7 @@ class ShipmentPreviewObject
 
   
   def self.build_display_data
-    orders = Spree::Order.includes(:ship_address).where("state = 'complete' and payment_state = 'paid'").order("completed_at asc").all
+    orders = Spree::Order.includes(:ship_address, :inventory_units, :line_items, :shipments => :shipping_events).where("state = 'complete' and payment_state = 'paid'").order("completed_at asc").all
     display_hash = Hash.new
     
     orders.each do |order|
