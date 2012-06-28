@@ -52,9 +52,9 @@ Spree::Order.class_eval do
          
         raise "validate products amount failed!:" + order.number + "[#{source1.size.to_s} =? #{value["preview_object"].get_categorized_inventory["sold"].size.to_s}]" if (source1.size != value["preview_object"].get_categorized_inventory["sold"].size)
         
-        value["preview_object"].get_categorized_inventory["sold"].each_pair do |product_id, quantity|
+        value["preview_object"].get_categorized_inventory["sold"].each_pair do |variant_id, quantity|
           raise "validate product quantity failed!:" + order.number + ", prodcut: " + product_id.to_s if (source1[product_id] == quantity)
-          p = Spree::Product.find product_id
+          p = Spree::Variant.find(variant_id).product
           csv << ["C","","",contract_charge_code,"",name,"",address1,address2,address3,address4,suburb,state,postcode,"AU","","N","","",p.name]
 #          csv << ["A",p.weight,p.depth,p.width,p.height,quantity,p.short_description.to_s.truncate(250),"","","","","","","","N","N","N","N",""]
           csv << ["A","",p.depth,p.width,p.height,quantity,p.short_description.to_s.truncate(250),"","","","","","","","N","N","N","N",""]                    
