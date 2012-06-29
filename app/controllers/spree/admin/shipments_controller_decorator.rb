@@ -9,26 +9,15 @@ Spree::Admin::ShipmentsController.class_eval do
 
       #@shipment.inventory_units.each &:ship!
       #if @shipment.send("ship")
+  
       @shipment.state = "shipped"
-      @shipment.update!(@shipment.order)  
+      @shipment.update!(@shipment.order)
+      @shipment.order.shipment_state = @shipment.state
+      @shipment.order.save   
     end  
 
   end
-  
-  # def update_shipping_events
-  #   Rails.logger.info("RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR")
-  #   shipping_events_attribute = params["shipment"]["shipping_events_attributes"]
-  #   shipping_events_attribute.each_pair do |key,value|
-  #     Rails.logger.info("RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR: " + value.to_s)
-  #     if (!value["tracking"].nil? && value["tracking"] != "")
-  #       se = ShippingEvent.find(value["id"])
-  #       se.tracking = value["tracking"]
-  #       Rails.logger.info("RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR2: " + se.tracking)
-  #       se.save         
-  #     end
-  #   end      
-  # end
-  
+    
   
   def fire
     if @shipment.partial_shipped?
