@@ -1,4 +1,4 @@
-Dear Customer,
+Dear <%= @shipment.order.ship_address.firstname %>,
 
 Hooray!! Your order #<%=@shipment.order.number%> has been <%=@shipment.shipment_statement()%>. Check out the shipping details below to track your order to your door.
 
@@ -34,4 +34,6 @@ Your package has been shipped by Australia Post. To track the order go to http:/
 If you have any questions about this order or would like to contact our customer service team please call 1300 651 134.
 
 Thank you for you for shopping with us.
-- The team at Better Be Quick
+<%= render "spree/common/email_salutation" %>
+
+<%= render :partial => "spree/common/email_footer", :locals => {:name => @shipment.order.ship_address.firstname} %>
