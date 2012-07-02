@@ -39,7 +39,7 @@ Spree::Order.class_eval do
         address3 = ""
         address4 = ""
         suburb = order.ship_address.city
-        state = order.ship_address.state_name
+        state = order.ship_address.state_text
         postcode = order.ship_address.zipcode
         
         
