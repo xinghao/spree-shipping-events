@@ -79,15 +79,17 @@ Spree::Shipment.class_eval do
   end
 
   
-  # group the backordered items
-  def group_backordered_inventory_units
+  # group the not shipped items
+  def group_not_shipped_inventory_units
     retHash = Hash.new
-    self.inventory_units.backorder.each do |unit|
-      if retHash.has_key?(unit.variant_id)
-        retHash[unit.variant_id]["quantity"] += 1
-      else
-        retHash[unit.variant_id] = {"quantity" => 1, "sku" => unit.variant.sku, "name" => unit.variant.name};
-      end 
+    self.inventory_units.each do |unit|
+      if unit.state == 'sold' || unit.state == 'backordered' 
+        if retHash.has_key?(unit.variant_id)
+          retHash[unit.variant_id]["quantity"] += 1
+        else
+          retHash[unit.variant_id] = {"quantity" => 1, "sku" => unit.variant.sku, "name" => unit.variant.name};
+        end 
+      end
     end
     return retHash;
   end
@@ -99,27 +101,34 @@ Spree::Shipment.class_eval do
     shipping_events.delete_all
     
     #se_sold = ShippingEvent.new
-    sold_collections = Array.new;
+    #sold_collections = Array.new;
     
     self.inventory_units.each do |unit|
-      if (unit.state == 'sold')
-        #sold_collections.push(InventoryShippingEvent.build(unit))
-        sold_collections.push(unit)
-      elsif (unit.state == 'backordered')
-        se_backordered = ShippingEvent.new
-        se_backordered.shipment = self
+
+        se = ShippingEvent.new
+        se.shipment = self
         #se_backordered.inventory_units = Array.new.push(InventoryShippingEvent.build(unit))
-        se_backordered.inventory_units = Array.new.push(unit)
-        se_backordered.save        
-      end
+        se.inventory_units = Array.new.push(unit)
+        se.save        
+      
+      # if (unit.state == 'sold')
+      #   #sold_collections.push(InventoryShippingEvent.build(unit))
+      #   sold_collections.push(unit)
+      # elsif (unit.state == 'backordered')
+      #   se_backordered = ShippingEvent.new
+      #   se_backordered.shipment = self
+      #   #se_backordered.inventory_units = Array.new.push(InventoryShippingEvent.build(unit))
+      #   se_backordered.inventory_units = Array.new.push(unit)
+      #   se_backordered.save        
+      # end
     end
     
-    if (sold_collections.size > 0)
-        se_sold = ShippingEvent.new
-        se_sold.shipment = self
-        se_sold.inventory_units = sold_collections
-        se_sold.save              
-    end
+    # if (sold_collections.size > 0)
+    #     se_sold = ShippingEvent.new
+    #     se_sold.shipment = self
+    #     se_sold.inventory_units = sold_collections
+    #     se_sold.save              
+    # end
     
   end
   

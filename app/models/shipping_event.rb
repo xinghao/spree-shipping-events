@@ -23,6 +23,9 @@ class ShippingEvent < ActiveRecord::Base
     end
   end
   
+  def has_backordered_inventory?
+    return true if inventory_units.first.state == 'backordered'
+  end
   
 # C,,,S9,,Alicia Fitzgerald,,155 Doncatser Rd,,,,Balwyn North,VIC,3104,AU,,N,,
 # A,,,,,,,,,,,,,,N,N,N,N,

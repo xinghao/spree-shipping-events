@@ -23,7 +23,7 @@ Shipping address:
 <%end%>
 <% if !@shipment.all_shipped? %>
 Items still remaining to be shipped:
-<% @shipment.group_backordered_inventory_units.each_pair do |key, unit| %>
+<% @shipment.group_not_shipped_inventory_units.each_pair do |key, unit| %>
 <%=unit["sku"]%> <%=unit["name"]%> (<%=unit["quantity"]%>)
 <% end %>
 ============================================================
