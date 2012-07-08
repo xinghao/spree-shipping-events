@@ -16,10 +16,10 @@ class ShipmentPreviewObject
 
   
   def self.build_display_data
-    orders = Spree::Order.includes(:ship_address, :inventory_units, :line_items, :shipments => :shipping_events).where("state = 'complete' and payment_state = 'paid'").order("completed_at asc").all
+    
     display_hash = Hash.new
     
-    orders.each do |order|
+    Spree::Order.includes(:ship_address, :inventory_units, :line_items, :shipments => :shipping_events).where("state = 'complete' and payment_state = 'paid' and id > 35910").order("completed_at asc").find_each(:batch_size => 500) do |order|
       if order.shipments.first.shipping_events.present? && !order.shipments.first.all_shipped? && order.need_ship?
         display_hash[order.id] = {"preview_object" => ShipmentPreviewObject.build_from_order(order), "order" => order}
         #total_send_products += order.inventory_units.where("state = ?", "sold").count

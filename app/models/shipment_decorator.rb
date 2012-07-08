@@ -78,6 +78,17 @@ Spree::Shipment.class_eval do
     return retHash;
   end
 
+  def group_all_inventory_units
+    retHash = Hash.new
+    self.inventory_units.each do |unit|
+      if retHash.has_key?(unit.variant_id)
+        retHash[unit.variant_id]["quantity"] += 1
+      else
+        retHash[unit.variant_id] = {"quantity" => 1, "sku" => unit.variant.sku, "name" => unit.variant.name};
+      end 
+    end
+    return retHash;    
+  end
   
   # group the not shipped items
   def group_not_shipped_inventory_units
