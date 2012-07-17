@@ -71,7 +71,6 @@ Spree::Order.class_eval do
         end
         
         pd = "[#{order.number}]:[#{se_numbers}]:[#{inventory_ids}]";
-        Rails.logger.info("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF: " + pd);
         raise "error in making [order][shipping_events][inventory_unit_ids]: " + pd if parse_pd_string(pd).nil?        
         # puts source1.size
         # puts value["preview_object"].get_categorized_inventory["sold"].size

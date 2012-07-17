@@ -4,6 +4,7 @@ class ShippingEvent < ActiveRecord::Base
   belongs_to :shipment, :class_name => "Spree::Shipment"
   has_many :inventory_shipping_events, :class_name => "InventoryShippingEvent"
   has_many :inventory_units, :class_name => "Spree::InventoryUnit", :through => :inventory_shipping_events
+  has_one :shipping_event_log, :class_name => "ShippingEventLog"
   
   before_create :generate_event_number
   accepts_nested_attributes_for :inventory_units

@@ -1,0 +1,81 @@
+<h3>Validate Manifest</h3>
+<h4>Total entries in manifest: <%=@lines.size%></h4>
+
+<p>
+Notes: <br />
+Validate value: pass, error, warning, skip <br />
+All Multiple products orders will get a warning for you to make sure it is not partial shipped. <br/>
+If an order is partial shipped please manually update tracking number through admin system and put <font color="brown">skip</font> into <%=Spree::ManifestLine::DELIVERY_INSTRUCTION%> field. The validate value for this line will become <font color="brown">skip</font><br/>
+<b>Process button does not work until you fix all the errors</b>
+</p>
+
+
+<table class="index">
+  <thead>
+    <tr>
+      <th>Line No</th>
+      <th>Order</th>
+      <th>State</th>
+      <th>Payment State</th>
+      <th>Shipments State</th>      
+      <th><%=Spree::ManifestLine::TRACKING_NUMBER%></th>
+      <th><%=Spree::ManifestLine::PRODUCT_DESCRIPTION%></th>
+      <th><%=Spree::ManifestLine::DELIVERY_INSTRUCTION%></th>
+      <th>Validate</th>
+      <th>Message</th>
+    </tr>
+  </thead>
+  
+  <tbody>
+    <% @lines.each do |line|%>
+      <tr>
+        <td><%=line.line_number%></td>
+        <% if line.order.nil? %>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>        
+        <% else %>
+          <td><%=line.order.number%></td>
+          <td><%=line.order.state%></td>
+          <td><%=line.order.payment_state%></td>
+          <td><%=line.order.shipment_state%></td>
+        <% end %>
+        <td><%=line.tracking_number%></td>
+        <td><%=line.product_description%></td>
+        <td><%=line.delivery_instruction%></td>
+        <td>
+          <% if !line.valid%>
+            <font color="red">Error</font>
+          <% elsif line.skip%>
+            <font color="brown">skip</font>
+          <% elsif line.warning%>
+            <font color="green">Warning</font>
+          <% else %>
+            pass
+          <% end%>    
+        </td>
+        <td>
+          <% if !line.valid%>
+            <font color="red"><%=line.msg%></font>
+          <% elsif line.skip%>
+            <font color="brown"><%=line.warning_msg%></font>
+          <% elsif line.warning%>
+            <font color="green"><%=line.warning_msg%></font>
+          <% else %>
+          <% end%>    
+        </td>                
+      </tr>
+    <% end %>    
+  </tbody>
+</table>
+
+<%= form_for [:admin, @shipment_manifest], :url => { :action => "commit" }, :html => { :multipart => true } do |f| %>
+  <p class="form-buttons" data-hook="buttons">
+    <% if !@shipment_manifest.valid%>
+      <button type="submit" disabled="disabled"><span>Process</span></button>
+     <% else %>
+      <%= button  "process" %>
+     <% end %>
+  </p>
+<% end %>
