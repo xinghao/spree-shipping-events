@@ -18,7 +18,7 @@ module Spree
     unless Rails.env.development?
       paperclip_opts.merge! :storage        => :s3,
                             :s3_credentials => "#{Rails.root}/config/s3.yml",
-                            :path           => 'app/public/spree/shipment-manifest/:id/:basename.:extension',                           
+                            :path           => 'app/public/spree/shipment-manifest/:id/:basename.:extension'                           
     end
 
       
