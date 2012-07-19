@@ -8,19 +8,35 @@ class ShipmentPreviewObject
   # @return_inventory_units = nil
   @categorized_inventory = nil
   @total_products = 0
+  @products = nil
   
   def initialize
     @categorized_inventory = Hash.new
     @total_products = 0
+    @products = Hash.new
   end
 
   
-  def self.build_display_data
+  # def get_products_overview()
+  #   return @products
+  # end
+    
+  def self.build_display_data(start_from, end_to)
     
     display_hash = Hash.new
-    
+        
     o = Spree::Order.find_by_number 'R748506805'
-    Spree::Order.includes(:ship_address, :inventory_units, :line_items, :shipments => :shipping_events).where("state = 'complete' and payment_state = 'paid' and completed_at > ?", o.completed_at).order("completed_at asc").find_each(:batch_size => 500) do |order|
+    if (start_from.blank? && end_to.blank?)
+      select = Spree::Order.includes(:ship_address, :inventory_units, :line_items, :shipments => :shipping_events).where("state = 'complete' and payment_state = 'paid' and completed_at > ?", o.completed_at)
+    elsif (end_to.blank?)
+      select = Spree::Order.includes(:ship_address, :inventory_units, :line_items, :shipments => :shipping_events).where("state = 'complete' and payment_state = 'paid' and completed_at > ? and completed_at >= ?", o.completed_at, start_from)
+    elsif (start_from.blank?)
+      select = Spree::Order.includes(:ship_address, :inventory_units, :line_items, :shipments => :shipping_events).where("state = 'complete' and payment_state = 'paid' and completed_at > ? and completed_at < ?", o.completed_at, end_to)
+    else
+      select = Spree::Order.includes(:ship_address, :inventory_units, :line_items, :shipments => :shipping_events).where("state = 'complete' and payment_state = 'paid' and completed_at > ? and completed_at >= ? and completed_at < ?", o.completed_at, start_from, end_to)
+    end
+    
+    select.order("completed_at asc").find_each(:batch_size => 500) do |order|
       if order.shipments.first.shipping_events.present? && !order.shipments.first.all_shipped? && order.need_ship?
         display_hash[order.id] = {"preview_object" => ShipmentPreviewObject.build_from_order(order), "order" => order}
         #total_send_products += order.inventory_units.where("state = ?", "sold").count
@@ -59,6 +75,7 @@ class ShipmentPreviewObject
     
     order.line_items.each do |line_item|
       instance.increase_total(line_item.quantity)
+#      instance.increase_products(line_item)
     end
     instance.organize_inventory(order)
     return instance
@@ -66,6 +83,14 @@ class ShipmentPreviewObject
   
   def increase_total(amount)
     @total_products += amount
+  end
+  
+  def increase_products(line_item)
+    if @products.has_key?(line_item.variant_id)
+      @products[line_item.variant_id] =+ line_item.quantity;
+    else
+      @products[line_item.variant_id] = line_item.quantity;
+    end
   end
   
   def self.category_size(tmphash)
