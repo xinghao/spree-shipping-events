@@ -54,6 +54,12 @@
         <%= shipment_form.select :shipping_method_id,
                                         @shipping_methods.map {|sm| ["#{sm.name} - #{sm.zone.name}", sm.id] } %>
       </td>
+      <% if !@shipment.tracking.blank?%>
+        <td>
+          <%= shipment_form.label :tracking, t(:tracking) + ':' %>
+        </td>
+        <td><%= @shipment.tracking %></td>
+      <% end %>      
     </tr>
     <% if Spree::Config[:shipping_instructions] %>
       <tr>
@@ -63,6 +69,7 @@
         <td colspan="3">
             <%= shipment_form.text_area :special_instructions %>
         </td>
+        
       </tr>
     <% end %>
   </table>
