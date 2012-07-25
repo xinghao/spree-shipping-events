@@ -15,9 +15,10 @@ namespace :orders do
     end
     
     desc "shipping fee fix for changing shipping rates"
-    task "fix_shipping_fee_for_change_rate", [:adjustment_amount, :limit, :process] => [:environment] do |t, args|
+    task "fix_shipping_fee_for_change_rate", [:adjustment_amount, :base, :limit, :process] => [:environment] do |t, args|
       adjustment_amount = args[:adjustment_amount].to_f
       limit = args[:limit].to_i
+      base = args[:base].to_i
       processed = 0;
       error = 0;
       if args[:process].downcase == "true"
@@ -26,7 +27,7 @@ namespace :orders do
         process = false
       end 
       
-      puts "Adjustment_amount: #{adjustment_amount.to_s}, limit: #{limit.to_s}, process: #{process.to_s}"
+      puts "Adjustment_amount: #{adjustment_amount.to_s}, base: #{base}, limit: #{limit.to_s}, process: #{process.to_s}"
        if adjustment_amount > 0
         payment_state = 'credit_owed'
       else
@@ -36,7 +37,7 @@ namespace :orders do
       total = 0;
       Spree::Order.includes(:payments, :line_items).where("state = 'complete' and payment_state = ?", payment_state).order("completed_at asc").find_each(:batch_size => 500) do |order|
         next if order.outstanding_balance != 0 - adjustment_amount
-        next if order.ship_total != 20 - adjustment_amount 
+        next if order.ship_total != base - adjustment_amount 
         puts "-Order: #{order.number}, Total: #{order.total.to_s}, Outstanding Balance:#{order.outstanding_balance.to_s}, Shipment: #{order.ship_total.to_s}"
         
        if (process)
