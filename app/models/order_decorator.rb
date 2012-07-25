@@ -215,4 +215,14 @@ Spree::Order.class_eval do
     return pd_ses;  
   end
   
+  
+  def bought?(variant_id)
+    self.line_items.each do |line_item|
+      return line_item.quantity if line_item.variant_id == variant_id        
+    end
+    
+    return 0
+  end
+  
+  
 end

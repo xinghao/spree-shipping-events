@@ -101,7 +101,7 @@ namespace :shipment do
          next
         end
         
-        if !order.shipments.first.tracking.nil? &&  order.shipments.first.tracking != track_number
+        if !order.shipments.first.tracking.nil? &&  !(order.shipments.first.tracking == track_number || order.shipments.first.tracking.include?(track_number)) 
           error += 1;
           puts "ERROR: #{order_number} tracking number does not match csv's tracking number"
         elsif !order.shipments.first.tracking.nil? 
