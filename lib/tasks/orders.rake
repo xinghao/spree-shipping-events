@@ -37,7 +37,7 @@ namespace :orders do
       Spree::Order.includes(:payments, :line_items).where("state = 'complete' and payment_state = ?", payment_state).order("completed_at asc").find_each(:batch_size => 500) do |order|
         next if order.outstanding_balance != 0 - adjustment_amount
         next if order.ship_total != 20 - adjustment_amount 
-        puts "-Order: #{order.number}, Total: #{order.total.to_s}, Outstanding Balance:#{order.outstanding_balance.to_s}, Shipment: #{ship_total.to_s}"
+        puts "-Order: #{order.number}, Total: #{order.total.to_s}, Outstanding Balance:#{order.outstanding_balance.to_s}, Shipment: #{order.ship_total.to_s}"
         
        if (process)
             adjustment = Spree::Adjustment.new(:adjustable => order, :amount => adjustment_amount, :label => "Shipping fee adjustment scripts")
