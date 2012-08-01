@@ -1,6 +1,12 @@
 <h3>Validate Manifest</h3>
 <h4>Total entries in manifest: <%=@lines.size%></h4>
-
+<h4><font color="red">Skip sending emails: 
+<%if @shipment_manifest.skip_email?%>
+  Ture
+<% else %>
+  False
+<% end %>
+</font></h4>
 <p>
 Notes: <br />
 Validate value: pass, error, warning, skip <br />

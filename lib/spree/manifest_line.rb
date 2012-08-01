@@ -30,6 +30,13 @@ module Spree
         @valid = true
         return  
       end 
+      
+      if (!@product_description.blank? && @product_description.match(/^lsm/i))
+        @warning_msg += "Long string mapping..."
+        @warning = true             
+        lsm = Spree::LongStringMap.find_by_number @product_description
+        @product_description = lsm.value 
+      end
       return validate()
     end
         
@@ -177,7 +184,7 @@ module Spree
             end
           end
           
-          if (!stop_sending_mail && changed) 
+          if (!stop_sending_mail && changed && !@shipment_manifest.skip_email?()) 
             shipment.send_shipment_mail 
             @mail_send = true
           end

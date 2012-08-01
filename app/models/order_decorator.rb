@@ -71,7 +71,16 @@ Spree::Order.class_eval do
         end
         
         pd = "[#{order.number}]:[#{se_numbers}]:[#{inventory_ids}]";
-        raise "error in making [order][shipping_events][inventory_unit_ids]: " + pd if parse_pd_string(pd).nil?        
+        raise "error in making [order][shipping_events][inventory_unit_ids]: " + pd if parse_pd_string(pd).nil?
+        
+        if pd.length >= 100
+          lsm = Spree::LongStringMap.new
+          lsm.value = pd;
+          lsm.save
+          pd = lsm.number  
+          raise "long string translates failed " + pd if pd == nil || pd.length == 0
+        end
+                
         # puts source1.size
         # puts value["preview_object"].get_categorized_inventory["sold"].size
          
@@ -91,7 +100,7 @@ Spree::Order.class_eval do
           end
          # short_description = "[#{order.number}:#{variant_id}] - " + v.product.short_description.to_s.truncate(200)
         end 
-        csv << ["C","","",contract_charge_code,"",name,"",address1,address2,address3,address4,suburb,state,postcode,"AU","","N","","",prduct_name_amount]
+        csv << ["C","","",contract_charge_code,"",name,"",address1,address2,address3,address4,suburb,state,postcode,"AU","","N","",prduct_name_amount,"Y","N","","N","","","Y","","N"]
 #          csv << ["A",p.weight,p.depth,p.width,p.height,quantity,p.short_description.to_s.truncate(250),"","","","","","","","N","N","N","N",""]
         csv << ["A",total_weight,"","","",1,pd,"","","","","","","","N","N","N","N",""]                    
                                          

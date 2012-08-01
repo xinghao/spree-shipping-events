@@ -25,7 +25,9 @@ module Spree
     has_attached_file :avatar, paperclip_opts
     
 
-    
+    def skip_email?()
+      return self.avatar_file_name.match(/^skip_email/i)
+    end
     
     def parse()
       if Rails.env.development?
@@ -37,9 +39,23 @@ module Spree
       ret = Array.new
       icount = 0;
       @valid = true
+      order_count = 0
+      integrate_line = nil
       CSV.new(open(url), :headers => :first_row).each do |line|
         icount += 1;
-        sml = Spree::ManifestLine.new(line, icount, self)
+        if icount % 2  == 1
+          raise "CSV file Error: line #{icount + 1} does not start with C" if (line[0].strip.downcase != "c")
+          integrate_line = Hash.new
+          integrate_line[Spree::ManifestLine::TRACKING_NUMBER] = line[1]
+          integrate_line[Spree::ManifestLine::DELIVERY_INSTRUCTION] = line[18]          
+          next
+        else
+          order_count += 1
+          raise "CSV file Error: line #{icount + 1} does not start with M" if (line[0].strip.downcase != "a")
+          integrate_line[Spree::ManifestLine::PRODUCT_DESCRIPTION] = line[6]
+        end
+        
+        sml = Spree::ManifestLine.new(integrate_line, order_count, self)
         ret.push sml      
         @valid = false if !sml.valid  
      end
