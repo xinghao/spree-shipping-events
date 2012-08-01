@@ -77,10 +77,11 @@ namespace :shipment do
       error = 0;
       skip = 0;
       processed = 0;
+      warning = 0;
       CSV.foreach("imports/" + file_name, :headers => true, :col_sep =>',', :row_sep =>:auto) do |row|
         break if !limit.nil? && !limit.empty? && total == limit.to_i        
-        order_number = row["order number"];
-        email = row["email"]
+        order_number = row["order number"].strip;
+        email = row["email"].strip
         track_number = row["Tracking number "]
         puts "order: #{order_number}, email: #{email}, tracking: #{track_number}"
         total += 1;
@@ -96,9 +97,8 @@ namespace :shipment do
         end
         
         if order.user.email != email
-          error += 1;
-          puts "ERROR: #{order_number} user email does not match csv's email. #{order.user.email} != #{email}"
-         next
+          warning += 1;
+          puts "Warning: #{order_number} user email does not match csv's email. #{order.user.email} != #{email}"
         end
         
         if !order.shipments.first.tracking.nil? &&  !(order.shipments.first.tracking == track_number || order.shipments.first.tracking.include?(track_number)) 
@@ -138,7 +138,7 @@ namespace :shipment do
                 
       end
       
-      puts "Total Valid: #{total.to_s}, error: #{error.to_s}, skip: #{skip.to_s}, processed: #{processed.to_s}"
+      puts "Total Valid: #{total.to_s}, error: #{error.to_s}, warning: #{warning.to_s}, skip: #{skip.to_s}, processed: #{processed.to_s}"
       if error == 0
         return true
       else
