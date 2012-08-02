@@ -1,11 +1,12 @@
 namespace :shipment do
   
-    def process_leyats_csv_file(file_name, limit)
+    def process_leyats_csv_file(url, limit)
       total = 0;
       error = 0;
       skip = 0;
       processed = 0 ;
-      CSV.foreach("imports/" + file_name, :headers => true, :col_sep =>',', :row_sep =>:auto) do |row|
+      CSV.new(open(url), :headers => :first_row).each do |row|
+      #CSV.foreach("imports/" + file_name, :headers => true, :col_sep =>',', :row_sep =>:auto) do |row|
         break if !limit.nil? && !limit.empty? && total == limit.to_i          
         order_number = row["order number"];
         email = row["email"]
@@ -72,13 +73,14 @@ namespace :shipment do
     #   end            
     # end
     
-    def valid_leyats_csv_file(file_name, limit)
+    def valid_leyats_csv_file(url, limit)
       total = 0;
       error = 0;
       skip = 0;
       processed = 0;
       warning = 0;
-      CSV.foreach("imports/" + file_name, :headers => true, :col_sep =>',', :row_sep =>:auto) do |row|
+      CSV.new(open(url), :headers => :first_row).each do |row|
+#      CSV.foreach("imports/" + file_name, :headers => true, :col_sep =>',', :row_sep =>:auto) do |row|
         break if !limit.nil? && !limit.empty? && total == limit.to_i        
         order_number = row["order number"].strip;
         email = row["email"].strip
@@ -151,19 +153,19 @@ namespace :shipment do
       ShippingEvent.output_csv("file.csv")
     end
     
-    desc "valid leyats 29.5-4.7 recent.csv"
-    task "valid_leyats_csv", [:file_name, :limit] => [:environment] do |t, args|
-      file_name = args[:file_name]
+    desc "valid leyats 29.5-4.7 recent.csv, please upload to s3 first"
+    task "valid_leyats_csv", [:url, :limit] => [:environment] do |t, args|
+      url = args[:url]
       limit = args[:limit]
-      valid_leyats_csv_file(file_name, limit)
+      valid_leyats_csv_file(url, limit)
     end
     
-    desc "valid leyats 29.5-4.7 recent.csv"
-    task "process_leyats_csv", [:file_name, :limit] => [:environment] do |t, args|
-      file_name = args[:file_name]
+    desc "valid leyats 29.5-4.7 recent.csv, please upload to s3 first"
+    task "process_leyats_csv", [:url, :limit] => [:environment] do |t, args|
+      url = args[:url]
       limit = args[:limit]
-      if valid_leyats_csv_file(file_name, limit)
-        process_leyats_csv_file(file_name, limit)
+      if valid_leyats_csv_file(url, limit)
+        process_leyats_csv_file(url, limit)
 #        valid_leyats_csv_file(file_name, limit)
       end
       
