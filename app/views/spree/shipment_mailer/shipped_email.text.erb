@@ -26,7 +26,9 @@ Items still remaining to be shipped:
 <% @shipment.group_not_shipped_inventory_units.each_pair do |key, unit| %>
 <%=unit["sku"]%> <%=unit["name"]%> (<%=unit["quantity"]%>)
 <% end %>
-For more information on when you will receive this product please
+Some products have more lead times than others and we try to be as transparent 
+about those times as we can be on the website. For more information on when you 
+will receive the balance of your order please 
 email support@betterbequick.com.au and quote your order number #<%=@shipment.order.number%>.
 ============================================================
 <% end %>
