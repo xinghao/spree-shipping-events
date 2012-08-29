@@ -18,6 +18,12 @@ module ShipInfo
           end
         end       
       end
+      
+      # sort the se numbers and ius
+      retHash.each_pair do |variant_id, value|
+        value["se_numbers"] = value["se_numbers"].sort if !value["se_numbers"].nil?
+        value["iu_ids"] = value["iu_ids"].sort if !value["iu_ids"].nil?
+      end
       return retHash      
     end
 
