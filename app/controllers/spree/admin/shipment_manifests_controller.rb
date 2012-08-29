@@ -24,8 +24,9 @@ module Spree
         @shipment_manifest.uploaded_at = Time.now
         if @shipment_manifest.update_attributes(params[:shipment_manifest])
           flash.notice = flash_message_for(@shipment_manifest, :successfully_updated)
-          @lines = @shipment_manifest.parse 
-          render "validate"
+          #@lines = @shipment_manifest.parse 
+          #render "validate"
+          render "uploaded"
         else
           flash.notice = "upload failed! please contact support"
           render "upload_failed"          

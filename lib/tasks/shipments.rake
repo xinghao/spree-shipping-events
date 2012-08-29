@@ -1,5 +1,63 @@
 namespace :shipment do
-  
+  namespace :output do
+    namespace :exalt do
+      desc "prview all current unshipped orders"
+      task "prview_csv", [:start_from, :end_at] => [:environment] do |t, args|
+        exalt = ShipInfo::Exalt.new
+        preview_date = exalt.preview(args[:start_from], args[:end_at])
+        
+        if preview_date["start_from"].nil?
+          puts "From: " +  preview_date["start_from"].to_s
+        else
+          puts "From: Beginning"
+        end
+        
+        puts "End: " +  preview_date["end_to"].to_s
+        
+        puts "Total Order involved: " + preview_date["display_hash"].size.to_s
+        puts "Total Products needs to be send: " + preview_date["total_send_products"].to_s
+        
+        puts "Quantity  -  Product Name"
+        preview_date["product_overview"].each_pair do |key, value|
+          puts "#{value.to_s}  -  #{Spree::Variant.find(key).name_with_options_text}"
+        end
+        
+      end
+      
+      desc "export all current unshipped orders"
+      task "export_csv", [:start_from, :end_at] => [:environment] do |t, args|
+        exalt = ShipInfo::Exalt.new
+        puts exalt.export_to_csv(args[:start_from], args[:end_at])
+      end                        
+                              
+    end
+  end
+    
+  namespace :input do
+    namespace :exalt do
+      desc "validate manifest"
+      task "validate", [:manifest_id, :limit] => [:environment] do |t, args|
+          manifest_id = args[:manifest_id]
+          limit = args[:limit]
+          exalt = ShipInfo::Exalt.new
+          exalt.validate_manifext(manifest_id, limit, true)          
+      end
+      
+      task "process", [:skip_mail, :only_send_to_backorder, :manifest_id, :limit] => [:environment] do |t, args|
+        
+        skip_mail = ShipmentCommonFunction.string_to_boolean(args[:skip_mail])
+        only_send_to_backorder = ShipmentCommonFunction.string_to_boolean(args[:only_send_to_backorder])
+        
+        manifest_id = args[:manifest_id]
+        limit = args[:limit]
+        exalt = ShipInfo::Exalt.new
+        if exalt.validate_manifext(manifest_id, limit, false)
+          exalt.process(manifest_id, limit, skip_mail, only_send_to_backorder)
+        end          
+      end      
+            
+    end
+  end  
     def process_leyats_csv_file(url, limit)
       total = 0;
       error = 0;

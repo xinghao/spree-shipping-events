@@ -36,8 +36,13 @@ class ShipmentPreviewObject
       select = Spree::Order.includes(:ship_address, :inventory_units, :line_items, :shipments => :shipping_events).where("state = 'complete' and payment_state = 'paid' and completed_at > ? and completed_at >= ? and completed_at < ?", o.completed_at, start_from, end_to)
     end
     
-    select.order("completed_at asc").find_each(:batch_size => 500) do |order|
-      if order.shipments.first.shipping_events.present? && !order.shipments.first.all_shipped? && order.need_ship?
+    select.order("completed_at asc").find_each(:batch_size => 100) do |order|
+      if !order.shipments.first.shipping_events.present?
+        puts "No shipping events: #{order.number}"
+        next
+      end 
+      
+      if !order.shipments.first.all_shipped? && order.need_ship?
         display_hash[order.id] = {"preview_object" => ShipmentPreviewObject.build_from_order(order), "order" => order}
         #total_send_products += order.inventory_units.where("state = ?", "sold").count
       end 

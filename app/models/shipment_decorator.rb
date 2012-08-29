@@ -28,7 +28,7 @@ Spree::Shipment.class_eval do
   end
   
   def all_shipped?
-    return true if (self.shipping_events.count == self.shipping_events.shipped.count)
+    return true if (self.shipping_events.count == self.shipping_events.shipped.count) && self.shipping_events.count != 0 
     return false
   end
   
@@ -151,6 +151,15 @@ Spree::Shipment.class_eval do
     end
   end
     
+  def set_tracking_number    
+    self.shipping_events do |event|
+      if self.tracking.blank?
+        self.tracking = event.tracking
+      else
+        self.tracking = self.tracking + "," + event.tracking
+      end 
+    end
+  end
   # def valid_address()
   #   return true if self.address_id == self.order.ship_address_id
   #   return true 

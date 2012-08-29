@@ -1,5 +1,8 @@
 Spree::InventoryUnit.class_eval do
   
+  has_many :inventory_shipping_events, :class_name => "InventoryShippingEvent"
+  has_many :shipping_events, :class_name => "ShippingEvent", :through => :inventory_shipping_events
+  
   
     # Assigns inventory to a newly completed order.
     # Should only be called once during the life-cycle of an order, on transition to completed.
