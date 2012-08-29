@@ -68,7 +68,7 @@ class ShipmentPreviewObject
   end
   
   def self.build_from_order(order)
-    raise "can not do with mulitple shippments in one order" if order.shipments.count > 1
+    raise "can not do with mulitple shippments in one order #{order.number}" if order.shipments.count > 1
     # @order_number = order.number
     # @order_completed_at = order.completed_at
     # @order_payment_state = order.payment_state
