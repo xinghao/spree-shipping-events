@@ -100,7 +100,7 @@
           <% unit = shipping_event_form.object.inventory_units.first%>
             <%=unit.state%>
               <%
-                if(unit.state == 'backordered')
+                if(!unit.nil? && unit.state == 'backordered')
                   disable = true
                 end          
               %>              

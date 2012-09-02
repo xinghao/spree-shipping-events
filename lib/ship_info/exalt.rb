@@ -53,7 +53,7 @@ module ShipInfo
     
     
     def generate_per_order(csv, order, value)
-      reference1 = order.number
+      
       # reference2 = ""
       # reference3 = ""
       name = order.ship_address.full_name      
@@ -88,6 +88,17 @@ module ShipInfo
       raise "validate products amount failed!:" + order.number + "[#{source1.size.to_s} =? #{value["preview_object"].get_categorized_inventory["sold"].size.to_s}]" if (source1.size != value["preview_object"].get_categorized_inventory["sold"].size)
       
       i_count = 0
+      
+      grouped_ui = Array.new
+      group_sold_inventory_units_more_details(s).each_pair do |variant_id, value|
+        value["iu_ids"].each do |iu_id|
+          raise "inventory id is not unique #{order.number}" if grouped_ui.include?(iu_id)
+          grouped_ui.push(iu_id);
+        end
+      end
+            
+      grouped_ui = grouped_ui.sort # sort inventroy id.
+      reference1 = order.number + "[" + Spree::LongStringMap.transfer(grouped_ui.join("-").to_s,38) + "]"
       
       group_sold_inventory_units_more_details(s).each_pair do |variant_id, value|
         variant = Spree::Variant.find variant_id
