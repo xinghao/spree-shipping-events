@@ -1,4 +1,5 @@
 Spree::Order.class_eval do
+  has_many :exalt_warehouse_states, :class_name => "ExaltWarehouseState"
   
   def create_shipments_shipping_events()    
     shipments.each do |shipment|
@@ -233,5 +234,17 @@ Spree::Order.class_eval do
     return 0
   end
   
+  
+  def valid_shipping_events()
+    return "can not hanle multiple shippments per order" if self.shipments.size > 1
+    return "already been shipped" if self.shipment.state == "shipped"
+    return "already have shipping events (#{self.shipment.shipping_events.size.to_s})" if self.shipment.shipping_events.size == self.inventory_units.size
+    return "already have a few shipping events (#{self.shipment.shipping_events.size.to_s})" if self.shipment.shipping_events.size > 0
+    self.shipment.shipping_events.each do |se|
+      return "Some shipping events have been shipped" if !se.tracking.blank? || !se.shipped_at.blank? 
+    end 
+    
+    return "validate pass"    
+  end
   
 end
