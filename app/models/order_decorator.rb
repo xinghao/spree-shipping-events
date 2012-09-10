@@ -262,9 +262,11 @@ Spree::Order.class_eval do
         raise "#{order.number} shipment states are not right" if shipment.state == 'shipped'
       end
       
+      ship_count = 0;
       order.inventory_units.each do |iu|
-        raise "#{order.number} inventory units are not right" if iu.state == 'shipped'
+        ship_count += 1 if iu.state == 'shipped'
       end
+      raise "#{order.number} inventory units are not right" if ship_count == order.inventory_units.size && order.inventory_units.size != 0  
       
       raise "we are not dealling mulitple shipments #{order.number}" if shipment_count > 1
       
