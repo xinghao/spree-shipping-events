@@ -1,4 +1,5 @@
 namespace :shipping_events do
+  
     desc "valid shipping events for a single order"
     task "se_create_valid", [:order_number] => [:environment] do |t, args|
       order_number = args[:order_number]
@@ -37,13 +38,18 @@ namespace :shipping_events do
     end
     
     
-    desc "valid shipping events for pre 4th July"
-    task "se_create_valid_pre4july", [:amount] => [:environment] do |t, args|
+    desc "valid shipping events for all oders"
+    task "scan_se_valid", [:amount] => [:environment] do |t, args|
       amount = args[:amount]
       amount = 0 if amount.blank?
-      
-      
+      Spree::Order.fix_shipping_events(true, amount.to_i)            
     end
     
+    desc "valid shipping events for all oders"
+    task "scan_se", [:amount] => [:environment] do |t, args|
+      amount = args[:amount]
+      amount = 0 if amount.blank?
+      Spree::Order.fix_shipping_events(false, amount.to_i)            
+    end
     
 end

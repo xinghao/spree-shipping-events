@@ -247,4 +247,43 @@ Spree::Order.class_eval do
     return "validate pass"    
   end
   
+  def self.fix_shipping_events(valid, amount)
+    o = Spree::Order.find_by_number 'R748506805'
+    total_count = 0;
+    processed_count = 0;
+    pre_4thJluy_count = 0;
+    post_4thJluy_count = 0;
+    Spree::Order.includes(:inventory_units, :shipments => :shipping_events).where("state = 'complete' and payment_state = 'paid' and shipment_state != 'shipped'").find_each(:batch_size => 100) do |order|
+      break if processed_count >= amount && amount != 0
+      shipment_count = 0;
+      total_count += 1;
+      order.shipments.each do |shipment|
+        shipment_count += 1;
+        raise "#{order.number} shipment states are not right" if shipment.state == 'shipped'
+      end
+      
+      order.inventory_units.each do |iu|
+        raise "#{order.number} inventory units are not right" if iu.state == 'shipped'
+      end
+      
+      raise "we are not dealling mulitple shipments #{order.number}" if shipment_count > 1
+      
+      if order.shipment.shipping_events.size != order.inventory_units.size
+        if valid
+          puts "#{order.number} needs to be fixed!"
+        else
+          order.create_shipments_shipping_events
+          puts "#{order.number} has been fixed!"
+        end 
+        processed_count += 1
+        if order.completed_at > o.completed_at
+          post_4thJluy_count += 1
+        else
+          pre_4thJluy_count += 1
+        end 
+      end         
+    end
+    puts "Total scaned: #{total_count}, processed: #{processed_count}, pre 4th July: #{post_4thJluy_count}, post 4th July: #{pre_4thJluy_count}"
+  end
+  
 end

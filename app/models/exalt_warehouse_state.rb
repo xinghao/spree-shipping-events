@@ -3,6 +3,7 @@ class ExaltWarehouseState < ActiveRecord::Base
   
   RECEIVED = "received"
   PENDING = "pending"
+  PRCESSED = 'processed'
   SHIPPED = "shipped"
   CANCELED = "canceled"
   
