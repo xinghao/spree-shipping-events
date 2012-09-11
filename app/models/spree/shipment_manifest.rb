@@ -29,6 +29,16 @@ module Spree
       return self.avatar_file_name.match(/^skip_email/i)
     end
     
+    def get_generated_timestamp
+      md = self.avatar_file_name.match(/(.*)_status/i)
+      return nil if md.nil? || md.size != 2
+      begin
+        return  DateTime.strptime(md[1], '%Y%m%d').to_time 
+      rescue
+        return nil
+      end      
+    end
+    
     def parse()
       if Rails.env.development?
         url = self.avatar.path

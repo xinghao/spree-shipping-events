@@ -285,7 +285,7 @@ Spree::Order.class_eval do
         end 
       end         
     end
-    puts "Total scaned: #{total_count}, processed: #{processed_count}, pre 4th July: #{post_4thJluy_count}, post 4th July: #{pre_4thJluy_count}"
+    puts "Total scaned: #{total_count}, processed: #{processed_count}, pre 4th July: #{pre_4thJluy_count}, post 4th July: #{post_4thJluy_count}"
   end
   
 end

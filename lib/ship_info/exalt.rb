@@ -270,96 +270,166 @@ module ShipInfo
     end
     
     
-    def parse(url, limit)
+    def parse(url, limit, shipment_manifest)
       ret = Array.new
       icount = 0;
+      
       ret_hash = {:valid => true, :manifest_lines => Array.new}
-
+      csv_lines = Hash.new #{:reference1 => array}
       order_count = 0
       
       line_no = 1
+      #group by reference1
       CSV.new(open(url), :headers => :first_row).each do |line|
         line_no += 1;        
-        break if (line_no - 1) > limit.to_i 
-        sml = Spree::ManifestLineExalt.new(line, line_no, self)
-        ret_hash[:manifest_lines].push sml      
-        ret_hash[:valid] = false if !sml.valid  
+        #break if csv_lines.size >= limit && limit != 0  
+        reference1 = Spree::ManifestLineExalt.get_reference1(line)
+        raise "Does not have reference1 for line #{line_no}" if reference1.blank?
+        if csv_lines.has_key?(reference1)
+          csv_lines[reference1].push line
+        else
+          csv_lines[reference1] = Array.new.push line
+        end        
      end
+
+
+      icount = 0;
+     csv_lines.each_pair do |reference1, csv_line|
+       break if icount >= limit && limit != 0
+       sml = Spree::ManifestLineExalt.new(reference1, csv_line, shipment_manifest)
+       ret_hash[:manifest_lines].push sml
+       ret_hash[:valid] = false if !sml.valid
+       icount += 1
+     end
+
+        # sml = Spree::ManifestLineExalt.new(line, line_no, self)
+        # ret_hash[:manifest_lines].has_key?(sml.reference)
+        # ret_hash[:valid] = false if !sml.valid  
      
      return ret_hash      
     end
     
     #validate the input manifest    
-    def validate_manifext(manifest_id, limit, print)
+    def process_manifext(manifest_id, skip_mail, limit, print, validate)
       sm = Spree::ShipmentManifest.find manifest_id
       raise "Can not find manifest for id #{id}" if sm.blank?
-            
+      
+      sm.generated_at = sm.get_generated_timestamp
+      raise "Does not have timestamp at the beginning for id #{id}" if sm.generated_at.nil?
+      
+      sm.save       
       puts sm.avatar.url
       
-      ret_hash = parse(sm.avatar.url, limit)
+      ret_hash = parse(sm.avatar.url, limit, sm)
       
       error_count = 0;
       skip_count = 0;
       processed_count = 0;
       warning_count = 0;
       pass_count = 0;
+      total_count = 0;
+      cancel_count = 0;
+      shipped_count = 0;
+      other_status_count = 0;
+      without_internal_record_count = 0
+      no_change_count =0 
       ret_hash[:manifest_lines].each do |line|
+        total_count += line.csv_line_amount
         line.println if print
+        
         if !line.valid
-          error_count += 1
-        elsif line.skip
-          skip_count += 1;
+          error_count += line.csv_line_amount
+        elsif line.manual_skip
+          skip_count += line.csv_line_amount;
         elsif line.already_processed          
-          processed_count += 1;
+          processed_count += line.csv_line_amount;
+        elsif line.skip
+          no_change_count += line.csv_line_amount          
         elsif line.warning
-          warning_count += 1;
+          warning_count += line.csv_line_amount;
         else
-          pass_count += 1;          
+          pass_count += line.csv_line_amount;          
+        end
+        
+        if line.status == ExaltWarehouseState::CANCELED
+          cancel_count += line.csv_line_amount;
+        elsif line.status == ExaltWarehouseState::SHIPPED
+          shipped_count += line.csv_line_amount;
+        else
+          other_status_count += line.csv_line_amount;
+        end
+        
+        
+        if line.ware_house_state_string.blank?
+          without_internal_record_count += line.csv_line_amount;
         end                   
       end
       
       puts "\n"
       puts "\n"
       
+      puts "Total: #{total_count}, Error: #{error_count}, Manual Skip: #{skip_count}, Already Processd: #{processed_count}, Warning: #{warning_count}, Pass: #{pass_count}, No changes: #{no_change_count}"
+      puts "Canceled: #{cancel_count}, Shipped: #{shipped_count}, Others: #{other_status_count}"
+      puts "Without Internal Record Count: #{without_internal_record_count}"
+      
       if ret_hash[:valid]
         puts "Valid: True"
       else
-        puts "Valid: False"
+        puts "Valid: False, processing been skipped"
+        return
       end
-      puts "Total: #{ret_hash[:manifest_lines].size}, Error: #{error_count}, Manual Skip: #{skip_count}, Already Processd: #{processed_count}, Warning: #{warning_count}, Pass: #{pass_count}"
+      
+      return if validate || !ret_hash[:valid]
+      
+      puts "\n"
+      puts "Starting processing............."
+      puts "\n"
+      
+      process(ret_hash, skip_mail)            
       return ret_hash
     end
     
-    def process(ret_hash,skip_mail, only_send_to_backorder)
-      total_count = 0;   
+    def process(ret_hash, skip_mail)
+      total_count = 0;  
+      changed_to_pending_count = 0; #6
+      changed_to_cancel_count = 0; #7
+      no_changes_count = 0;  #5 
       valid_failed_count = 0;  #4
       state_error = 0;  #3
       already_process = 0;  #2
       processed_count = 0 #0
       skip_count = 0 # 1
       email_sent_count = 0;
-
+      changes_count = 0
 
       ret_hash[:manifest_lines].each do |line|
-        line.process(skip_mail, only_send_to_backorder);
+        line.process(skip_mail);
         line.process_println
-        email_sent_count += 1 if line.mail_send
-        total_count += 1
+        email_sent_count += line.csv_line_amount if line.mail_send
+        total_count += line.csv_line_amount
+        changes_count += line.csv_line_amount if line.need_process
         case line.process_state
         when 1 
-          skip_count += 1
+          skip_count += line.csv_line_amount
         when 2
-          already_process += 1
+          already_process += line.csv_line_amount
         when 3
-          state_error += 1
+          state_error += line.csv_line_amount
         when 4 
-          valid_failed_count += 1
+          valid_failed_count += line.csv_line_amount
+        when 5
+          no_changes_count += line.csv_line_amount 
+        when 6
+          changed_to_pending_count += line.csv_line_amount
+        when 7
+          changed_to_cancel_count += line.csv_line_amount
         when 0
-          processed_count += 1
+          processed_count += line.csv_line_amount
         end
       end
       
-      puts "Total: #{total_count}, Processed: #{processed_count}, Valid Failed: #{valid_failed_count}, Manually Skip: #{skip_count}, Already Processed: #{already_process}, State Error: #{state_error}, Email sent: #{email_sent_count}"
+      puts "Total: #{total_count}, Valid Failed: #{valid_failed_count}, Manually Skip: #{skip_count}, Already Processed: #{already_process}, State Error: #{state_error}, No changes: #{no_changes_count}, changes: #{changes_count}"
+      puts "To Pending: #{changed_to_pending_count}, To canceled: #{changed_to_cancel_count}, To Shipped: #{processed_count},  Email sent: #{email_sent_count}"
     end    
     
     def self.parse_reference1(reference1)
@@ -368,8 +438,8 @@ module ShipInfo
         md = reg.match(reference1)
         
         # make sure it is match the format
-        if (md.size != 3)
-          @msg = "#{reference1} is not formated as order_number[inventory_unit_ids]"
+        if ( md.nil? || md.size != 3)
+          @msg = "#{reference1} is not formated as order_number[inventory_unit_ids]: #{reference1}"
           return ret_hash
         end
         ret_hash[:order_number] = md[1]

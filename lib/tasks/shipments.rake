@@ -59,20 +59,22 @@ namespace :shipment do
           manifest_id = args[:manifest_id]
           limit = args[:limit]
           exalt = ShipInfo::Exalt.new
-          exalt.validate_manifext(manifest_id, limit, true)          
+          exalt.process_manifext(manifest_id, false, limit.to_i, true, true)          
       end
       
-      task "process", [:skip_mail, :only_send_to_backorder, :manifest_id, :limit] => [:environment] do |t, args|
+      desc "process manifest"
+      task "process", [:skip_mail, :manifest_id, :limit] => [:environment] do |t, args|
         
         skip_mail = ShipmentCommonFunction.string_to_boolean(args[:skip_mail])
-        only_send_to_backorder = ShipmentCommonFunction.string_to_boolean(args[:only_send_to_backorder])
-        
+        #only_send_to_backorder = ShipmentCommonFunction.string_to_boolean(args[:only_send_to_backorder])
+        skip_mail = true if skip_mail == nil || (skip_mail != true && skip_mail != false)
+        puts "======================Skip Email: #{skip_mail}"
         manifest_id = args[:manifest_id]
         limit = args[:limit]
+        limit = 0 if limit.blank?
         exalt = ShipInfo::Exalt.new
-        if exalt.validate_manifext(manifest_id, limit, false)
-          exalt.process(manifest_id, limit, skip_mail, only_send_to_backorder)
-        end          
+        exalt.process_manifext(manifest_id, skip_mail, limit.to_i, false, false)
+                  
       end      
             
     end

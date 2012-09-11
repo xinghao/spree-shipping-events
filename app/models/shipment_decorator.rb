@@ -59,7 +59,7 @@ Spree::Shipment.class_eval do
             if (tmp.has_key?(unit.variant_id))
               tmp[unit.variant_id]["quantity"] += 1
             else
-              tmp[unit.variant_id] = {"quantity" => 1, "sku" => unit.variant.sku, "name" => unit.variant.name};
+              tmp[unit.variant_id] = {"quantity" => 1, "sku" => unit.variant.sku, "name" => unit.variant.name_with_options_text};
             end
           end
         else
@@ -68,7 +68,7 @@ Spree::Shipment.class_eval do
             if (tmp.has_key?(unit.variant_id))
               tmp[unit.variant_id]["quantity"] += 1
             else
-              tmp[unit.variant_id] = {"quantity" => 1, "sku" => unit.variant.sku, "name" => unit.variant.name};
+              tmp[unit.variant_id] = {"quantity" => 1, "sku" => unit.variant.sku, "name" => unit.variant.name_with_options_text};
             end            
           end
           retHash[event.tracking] = {"tracking" => event.tracking, "shipped_at" => event.shipped_at, "units" => tmp}
@@ -84,7 +84,7 @@ Spree::Shipment.class_eval do
       if retHash.has_key?(unit.variant_id)
         retHash[unit.variant_id]["quantity"] += 1
       else
-        retHash[unit.variant_id] = {"quantity" => 1, "sku" => unit.variant.sku, "name" => unit.variant.name};
+        retHash[unit.variant_id] = {"quantity" => 1, "sku" => unit.variant.sku, "name" => unit.variant.name_with_options_text};
       end 
     end
     return retHash;    
@@ -98,7 +98,7 @@ Spree::Shipment.class_eval do
         if retHash.has_key?(unit.variant_id)
           retHash[unit.variant_id]["quantity"] += 1
         else
-          retHash[unit.variant_id] = {"quantity" => 1, "sku" => unit.variant.sku, "name" => unit.variant.name};
+          retHash[unit.variant_id] = {"quantity" => 1, "sku" => unit.variant.sku, "name" => unit.variant.name_with_options_text};
         end 
       end
     end

@@ -88,6 +88,7 @@ class ShippingEvent < ActiveRecord::Base
     end
     
     def update_shipped_at
+      return if !self.shipped_at.blank?
       self.shipped_at = Time.now if self.tracking_changed? && !self.tracking.nil? && self.tracking != ""
     end
     
