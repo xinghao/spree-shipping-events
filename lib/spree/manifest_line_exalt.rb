@@ -85,7 +85,7 @@ module Spree
       if @order.state != 'canceled'
         iu = Spree::InventoryUnit.find iu_id
         raise "inventory id does not exist: #{iu_id} for reference1: #{reference1}" if iu.nil?
-        raise "Product code and product description not matched here!!!! for reference1: #{reference1} and iu_id: #{iu_id}" if iu.variant.sku != product_code || iu.variant.name_with_options_text != product_description
+        raise "Product code and product description not matched here!!!! for reference1: #{reference1} and iu_id: #{iu_id}" if iu.variant.sku != product_code || iu.variant.name_with_options_text.strip != product_description.strip
       end      
       raise "order qty is empty for #{reference1}" if ret_hash[:order_qty] == 0
       
