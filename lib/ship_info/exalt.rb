@@ -270,7 +270,7 @@ module ShipInfo
     end
     
     
-    def parse(url, limit, shipment_manifest)
+    def parse(url, start, limit, shipment_manifest)
       ret = Array.new
       icount = 0;
       
@@ -294,12 +294,17 @@ module ShipInfo
 
 
       icount = 0;
-     csv_lines.each_pair do |reference1, csv_line|
-       break if icount >= limit && limit != 0
+      pcount = 0
+     csv_lines.each_pair do |reference1, csv_line|       
+       icount += 1
+       next if start!= 0 and icount < start       
+       break if pcount >= limit && limit != 0
+       pcount += 1
        sml = Spree::ManifestLineExalt.new(reference1, csv_line, shipment_manifest)
        ret_hash[:manifest_lines].push sml
-       ret_hash[:valid] = false if !sml.valid
-       icount += 1
+       ret_hash[:valid] = false if !sml.valid       
+       sleep 0.2
+       
      end
 
         # sml = Spree::ManifestLineExalt.new(line, line_no, self)
@@ -310,7 +315,10 @@ module ShipInfo
     end
     
     #validate the input manifest    
-    def process_manifext(manifest_id, skip_mail, limit, print, validate)
+    def process_manifext(manifest_id, skip_mail, start, limit, print, validate)
+      
+      puts "Start from: #{start}, limit: #{limit}"
+      
       sm = Spree::ShipmentManifest.find manifest_id
       raise "Can not find manifest for id #{id}" if sm.blank?
       
@@ -320,7 +328,7 @@ module ShipInfo
       sm.save       
       puts sm.avatar.url
       
-      ret_hash = parse(sm.avatar.url, limit, sm)
+      ret_hash = parse(sm.avatar.url, start, limit, sm)
       
       error_count = 0;
       skip_count = 0;

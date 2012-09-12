@@ -54,16 +54,17 @@ namespace :shipment do
     
   namespace :input do
     namespace :exalt do
-      desc "validate manifest"
-      task "validate", [:manifest_id, :limit] => [:environment] do |t, args|
+      desc "validate manifest, start from 1"
+      task "validate", [:manifest_id, :start, :limit] => [:environment] do |t, args|
           manifest_id = args[:manifest_id]
           limit = args[:limit]
+          start = args[:start]
           exalt = ShipInfo::Exalt.new
-          exalt.process_manifext(manifest_id, false, limit.to_i, true, true)          
+          exalt.process_manifext(manifest_id, false, start.to_i, limit.to_i, true, true)          
       end
       
-      desc "process manifest"
-      task "process", [:skip_mail, :manifest_id, :limit] => [:environment] do |t, args|
+      desc "process manifest, start from 1"
+      task "process", [:skip_mail, :manifest_id, :start, :limit] => [:environment] do |t, args|
         
         skip_mail = ShipmentCommonFunction.string_to_boolean(args[:skip_mail])
         #only_send_to_backorder = ShipmentCommonFunction.string_to_boolean(args[:only_send_to_backorder])
@@ -72,8 +73,9 @@ namespace :shipment do
         manifest_id = args[:manifest_id]
         limit = args[:limit]
         limit = 0 if limit.blank?
+        start = args[:start]
         exalt = ShipInfo::Exalt.new
-        exalt.process_manifext(manifest_id, skip_mail, limit.to_i, false, false)
+        exalt.process_manifext(manifest_id, skip_mail, start.to_i, limit.to_i, false, false)
                   
       end      
             
