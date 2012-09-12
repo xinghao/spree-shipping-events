@@ -311,7 +311,7 @@ module Spree
       end
       
       
-      if @status == ExaltWarehouseState::CANCELED
+      if @status == ExaltWarehouseState::CANCELED || @order.state == 'canceled'
         
         return true
       end     
