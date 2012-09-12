@@ -82,7 +82,7 @@ module Spree
       end
       
       iu_id = ret_hash[:iu_ids_array][0]
-      if ret_hash[:order_note].blank?
+      if @order.state != 'canceled'
         iu = Spree::InventoryUnit.find iu_id
         raise "inventory id does not exist: #{iu_id} for reference1: #{reference1}" if iu.nil?
         raise "Product code and product description not matched here!!!! for reference1: #{reference1} and iu_id: #{iu_id}" if iu.variant.sku != product_code || iu.variant.name_with_options_text != product_description
@@ -140,8 +140,8 @@ module Spree
       @order_number = reference1s[:order_number]
       raise "reference1 is not well formated #{reference1}" if @order_number.blank?
       
-      # @order = Spree::Order.includes(:shipments => [:shipping_events => :inventory_units]).find_by_number(@order_number)
-      # raise "Order does not exist for Reference1 #{reference1}" if @order.nil?
+      @order = Spree::Order.includes(:shipments => [:shipping_events => :inventory_units]).find_by_number(@order_number)
+      raise "Order does not exist for Reference1 #{reference1}" if @order.nil?
       
       status_tmp = nil
       #{:iu_ids_array=> nil, :se_numbers_array=> nil, :tracking_number => nil, :ware_house_state => nil, :shipping_units_amount => 0, :order_qty => 0, :ship_qty => 0, :short_qty => 0, :shipped => nil, :status => nil}
