@@ -314,6 +314,16 @@ module ShipInfo
      return ret_hash      
     end
     
+    def commit_manifest(manifest_id)
+      
+      sm = Spree::ShipmentManifest.find manifest_id
+      raise "Can not find manifest for id #{id}" if sm.blank?
+      
+      sm.commit_at = Time.now            
+      sm.save       
+      puts sm.avatar.url      
+    end
+    
     #validate the input manifest    
     def process_manifext(manifest_id, skip_mail, start, limit, print, validate)
       
@@ -337,6 +347,7 @@ module ShipInfo
       pass_count = 0;
       total_count = 0;
       cancel_count = 0;
+      processed_status_count = 0;
       shipped_count = 0;
       other_status_count = 0;
       without_internal_record_count = 0
@@ -363,6 +374,8 @@ module ShipInfo
           cancel_count += line.csv_line_amount;
         elsif line.status == ExaltWarehouseState::SHIPPED
           shipped_count += line.csv_line_amount;
+        elsif line.status == ExaltWarehouseState::PRCESSED
+          processed_status_count += line.csv_line_amount;          
         else
           other_status_count += line.csv_line_amount;
         end
@@ -377,7 +390,7 @@ module ShipInfo
       puts "\n"
       
       puts "Total: #{total_count}, Error: #{error_count}, Manual Skip: #{skip_count}, Already Processd: #{processed_count}, Warning: #{warning_count}, Pass: #{pass_count}, No changes: #{no_change_count}"
-      puts "Canceled: #{cancel_count}, Shipped: #{shipped_count}, Others: #{other_status_count}"
+      puts "Canceled: #{cancel_count}, Shipped: #{shipped_count}, Processed: #{processed_status_count}, Others: #{other_status_count}"
       puts "Without Internal Record Count: #{without_internal_record_count}"
       
       if ret_hash[:valid]
@@ -401,6 +414,7 @@ module ShipInfo
       total_count = 0;  
       changed_to_pending_count = 0; #6
       changed_to_cancel_count = 0; #7
+      changed_to_processed_count = 0; #8
       no_changes_count = 0;  #5 
       valid_failed_count = 0;  #4
       state_error = 0;  #3
@@ -431,13 +445,15 @@ module ShipInfo
           changed_to_pending_count += line.csv_line_amount
         when 7
           changed_to_cancel_count += line.csv_line_amount
+        when 8
+          changed_to_processed_count += line.csv_line_amount
         when 0
           processed_count += line.csv_line_amount
         end
       end
       
       puts "Total: #{total_count}, Valid Failed: #{valid_failed_count}, Manually Skip: #{skip_count}, Already Processed: #{already_process}, State Error: #{state_error}, No changes: #{no_changes_count}, changes: #{changes_count}"
-      puts "To Pending: #{changed_to_pending_count}, To canceled: #{changed_to_cancel_count}, To Shipped: #{processed_count},  Email sent: #{email_sent_count}"
+      puts "To Pending: #{changed_to_pending_count}, To Processed: #{changed_to_processed_count}, To canceled: #{changed_to_cancel_count}, To Shipped: #{processed_count},  Email sent: #{email_sent_count}"
     end    
     
     def self.parse_reference1(reference1)

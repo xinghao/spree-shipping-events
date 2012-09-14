@@ -54,6 +54,13 @@ namespace :shipment do
     
   namespace :input do
     namespace :exalt do
+      desc "market manifest as processed"
+      task "market_as_commit", [:manifest_id] => [:environment] do |t, args|
+         manifest_id = args[:manifest_id]
+         exalt = ShipInfo::Exalt.new
+         exalt.commit_manifest(manifest_id)
+      end
+      
       desc "validate manifest, start from 1"
       task "validate", [:manifest_id, :start, :limit] => [:environment] do |t, args|
           manifest_id = args[:manifest_id]

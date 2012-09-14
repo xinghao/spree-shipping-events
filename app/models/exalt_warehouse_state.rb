@@ -5,7 +5,7 @@ class ExaltWarehouseState < ActiveRecord::Base
   PENDING = "pending"
   PRCESSED = 'processed'
   SHIPPED = "shipped"
-  CANCELED = "canceled"
+  CANCELED = "cancelled"
   
   
   def self.get_inventory_units_id_list(order)      

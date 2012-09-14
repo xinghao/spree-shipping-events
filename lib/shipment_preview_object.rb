@@ -25,15 +25,15 @@ class ShipmentPreviewObject
     
     display_hash = Hash.new
         
-    o = Spree::Order.find_by_number 'R748506805'
+    #o = Spree::Order.find_by_number 'R748506805'
     if (start_from.blank? && end_to.blank?)
-      select = Spree::Order.includes(:ship_address, :inventory_units, :line_items, :shipments => :shipping_events).where("state = 'complete' and payment_state = 'paid' and completed_at > ?", o.completed_at)
+      select = Spree::Order.includes(:ship_address, :inventory_units, :line_items, :shipments => :shipping_events).where("state = 'complete' and payment_state = 'paid'")
     elsif (end_to.blank?)
-      select = Spree::Order.includes(:ship_address, :inventory_units, :line_items, :shipments => :shipping_events).where("state = 'complete' and payment_state = 'paid' and completed_at > ? and completed_at >= ?", o.completed_at, start_from)
+      select = Spree::Order.includes(:ship_address, :inventory_units, :line_items, :shipments => :shipping_events).where("state = 'complete' and payment_state = 'paid' and completed_at >= ?", start_from)
     elsif (start_from.blank?)
-      select = Spree::Order.includes(:ship_address, :inventory_units, :line_items, :shipments => :shipping_events).where("state = 'complete' and payment_state = 'paid' and completed_at > ? and completed_at < ?", o.completed_at, end_to)
+      select = Spree::Order.includes(:ship_address, :inventory_units, :line_items, :shipments => :shipping_events).where("state = 'complete' and payment_state = 'paid' and completed_at < ?", end_to)
     else
-      select = Spree::Order.includes(:ship_address, :inventory_units, :line_items, :shipments => :shipping_events).where("state = 'complete' and payment_state = 'paid' and completed_at > ? and completed_at >= ? and completed_at < ?", o.completed_at, start_from, end_to)
+      select = Spree::Order.includes(:ship_address, :inventory_units, :line_items, :shipments => :shipping_events).where("state = 'complete' and payment_state = 'paid' and completed_at >= ? and completed_at < ?", start_from, end_to)
     end
     
     select.order("completed_at asc").find_each(:batch_size => 100) do |order|

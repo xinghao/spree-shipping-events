@@ -175,16 +175,16 @@ module Spree
         end 
         
         #valid order note
-        if !@order_note.blank? && ret[:order_note] != @order_note
-          raise "mulitple status for Reference1 #{reference1}"
-        elsif !ret[:order_note].blank?
-          if ret[:order_note].downcase != 'CANCELLED. '.downcase && ret[:order_note].downcase != 'CANCELLED.'.downcase
-            raise "Unknown order notes #{ret[:order_note]} for Reference1 #{reference1}"
-          else
-            @order_note = ret[:order_note]
-            status_tmp = ExaltWarehouseState::CANCELED
-          end
-        end 
+        # if !@order_note.blank? && ret[:order_note] != @order_note
+        #   raise "mulitple status for Reference1 #{reference1}"
+        # elsif !ret[:order_note].blank?
+        #   if ret[:order_note].downcase != 'CANCELLED. '.downcase && ret[:order_note].downcase != 'CANCELLED.'.downcase
+        #     raise "Unknown order notes #{ret[:order_note]} for Reference1 #{reference1}"
+        #   else
+        #     @order_note = ret[:order_note]
+        #     status_tmp = ExaltWarehouseState::CANCELED
+        #   end
+        # end 
 
         #valid warehouse state
         if !@ware_house_state_string.blank? && !ret[:ware_house_state].nil? && @ware_house_state_string != ret[:ware_house_state].state
@@ -214,7 +214,7 @@ module Spree
       end
       
       
-      @status = status_tmp if !status_tmp.blank?
+      #@status = status_tmp if !status_tmp.blank?
       return validate(se_numbers_list, iu_ids_list)
     end
         
@@ -442,21 +442,24 @@ module Spree
         if @status == ExaltWarehouseState::PENDING
           @process_state = 6
           @process_msg = "changing to pending";
-          update_ews(@status)
-                    
+          update_ews(@status)                    
         end
         
         if @status == ExaltWarehouseState::CANCELED
           @process_state = 7
           @process_msg = "changing to canceled";
-          update_ews(@status)
-                    
+          update_ews(@status)                    
+        end
+
+        if @status == ExaltWarehouseState::PRCESSED
+          @process_state = 8
+          @process_msg = "changing to processed";
+          update_ews(@status)                    
         end
         
         if @status == ExaltWarehouseState::SHIPPED
           shipped(skip_mail)
-          update_ews(@status)          
-                 
+          update_ews(@status)                 
         end                
         
       else
