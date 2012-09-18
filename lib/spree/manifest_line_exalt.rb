@@ -155,7 +155,7 @@ module Spree
         @order_qty += ret[:order_qty]
         @ship_qty += ret[:ship_qty]
         @short_qty += ret[:short_qty]
-        @shipped = DateTime.strptime(ret[:shipped], '%d/%m/%y').to_time if !ret[:shipped].blank? 
+        @shipped = DateTime.strptime(ret[:shipped], '%d/%m/%Y').to_time if !ret[:shipped].blank? 
         
         # valid tracking number
         if !@tracking_number.blank? && ret[:tracking_number] != @tracking_number
