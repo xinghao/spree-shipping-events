@@ -84,6 +84,7 @@
       <th colspan="3">Product</th>
       <th colspan="1">Product State</th>
       <th colspan="2">Tracking Number</th>
+      <th colspan="1">Carrier</th>
       <th colspan="1">Email</th>
     </tr>
     <%= shipment_form.fields_for :shipping_events do |shipping_event_form| %>
@@ -113,6 +114,9 @@
           <%= shipping_event_form.text_field :tracking%>
           <% end %>
         </td>
+        <td>
+          <%= shipping_event_form.text_field :carrier, :disabled =>"disabled" %>
+        </td>        
         <td>
           <%if !shipping_event_form.object.shipping_event_log.nil?%>
             <%=shipping_event_form.object.shipping_event_log.mail_send%>
