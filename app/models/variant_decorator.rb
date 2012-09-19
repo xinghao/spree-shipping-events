@@ -9,7 +9,6 @@ Spree::Variant.class_eval do
     Spree::InventoryUnit.includes(:order, :shipping_events).where("variant_id = ? and state = ?", self.id, "sold").order("id asc").find_each(:batch_size => 100) do |iu|
       if iu.order.completed_at <= o.completed_at
         total_previus_release += 1
-        next 
       end
 
       total += 1;            
@@ -47,7 +46,6 @@ Spree::Variant.class_eval do
     Spree::InventoryUnit.includes(:order, :shipping_events).where("variant_id = ? and state = ?", self.id, "sold").order("id asc").find_each(:batch_size => 100) do |iu|
       if iu.order.completed_at <= o.completed_at
         total_previus_release += 1
-        next 
       end
       total_count += 1;
       puts total_count.to_s + " " + iu.order.number
