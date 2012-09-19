@@ -42,4 +42,31 @@ namespace :variants do
       variant.update_attributes_without_callbacks(:count_on_hand=> (0 - variant.on_backorder))
     end    
     
+    
+    desc "List all orders with specific variant"    
+    task "list_orders", [:variant_id, :state] => [:environment] do |t, args|
+      variant_id = args[:variant_id].to_i
+      state = args[:state]
+      variant = Spree::Variant.find variant_id
+      if variant.blank?
+        puts "Can not find this Variant for #{variant_id} !!!!!!!"
+      end
+      puts "Strat processing: Variant: #{variant.name_with_options_text}, state: #{state}"
+      
+      total_count = 0;
+      single_count = 0;
+      multi_count = 0;
+      Spree::InventoryUnit.includes(:order => :inventory_units).where("variant_id = ? and state = ?", variant_id, state).order("id asc").find_each(:batch_size => 100) do |iu|
+        if (iu.order.inventory_units.size > 1)
+          puts iu.order.number + ", multi-order: true"
+          multi_count += 1
+        else
+          puts iu.order.number + ", multi-order: false"
+          single_count += 1
+        end
+        total_count += 1
+      end          
+      puts "Total scaned: #{total_count}, Single orders: #{single_count}, Multi orders: #{multi_count}"
+    end
+    
  end
