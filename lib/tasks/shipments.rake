@@ -20,10 +20,10 @@ namespace :shipment do
       end
       
       
-      desc "prview all current unshipped orders"
-      task "prview_csv", [:start_from, :end_at] => [:environment] do |t, args|
+      desc "preview all current unshipped orders"
+      task "preview_csv", [:start_from, :end_at] => [:environment] do |t, args|
         exalt = ShipInfo::Exalt.new
-        preview_date = exalt.preview(args[:start_from], args[:end_at])
+        preview_date = exalt.preview_to_csv(args[:start_from], args[:end_at])
         
         if preview_date["start_from"].nil?
           puts "From: " +  preview_date["start_from"].to_s
@@ -32,14 +32,14 @@ namespace :shipment do
         end
         
         puts "End: " +  preview_date["end_to"].to_s
-        
-        puts "Total Order involved: " + preview_date["display_hash"].size.to_s
-        puts "Total Products needs to be send: " + preview_date["total_send_products"].to_s
-        
-        puts "Quantity  -  Product Name"
-        preview_date["product_overview"].each_pair do |key, value|
-          puts "#{value.to_s}  -  #{Spree::Variant.find(key).name_with_options_text}"
-        end
+                
+        # puts "Total Order involved: " + preview_date["display_hash"].size.to_s
+        # puts "Total Products needs to be send: " + preview_date["total_send_products"].to_s
+        # 
+        # puts "Quantity  -  Product Name"
+        # preview_date["product_overview"].each_pair do |key, value|
+        #   puts "#{value.to_s}  -  #{Spree::Variant.find(key).name_with_options_text}"
+        # end
         
       end
       

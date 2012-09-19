@@ -75,7 +75,7 @@ module ShipInfo
       shipment.shipping_events.un_shipped.each do |event|
         event.inventory_units.each do |unit|
           if (unit.state == "sold")
-            raise "duplicates happened for shipment #{shipment.number}" if pending_iu_ids.has_key?(unit.id) && pending_iu_ids[unit.id] != ExaltWarehouseState::RECEIVED && pending_iu_ids[unit.id] != ExaltWarehouseState::PENDING
+            raise "duplicates happened for shipment #{shipment.number}" if pending_iu_ids.has_key?(unit.id) && pending_iu_ids[unit.id] != ExaltWarehouseState::RECEIVED && pending_iu_ids[unit.id] != ExaltWarehouseState::PENDING && pending_iu_ids[unit.id] != ExaltWarehouseState::PROCESSED
             if pending_iu_ids.has_key?(unit.id)
               skip_count += 1;
               next
@@ -99,10 +99,53 @@ module ShipInfo
       return { :ret => retHash, :skip_count => skip_count}      
     end
 
+    def preview_to_csv(start_from, end_at)
+      preview_date = ShipmentCommonFunction::build_shipment_data(start_from, end_at, true)
+      
+      order_count = preview_date["display_hash"].size
+      total_send_products = preview_date["total_send_products"]
+      
+      product_overview_hash = Hash.new
+
+      icount = 0;      
+      preview_date["display_hash"].each_pair do |order_id, value|
+        order = value["order"]
+        puts "processing #{order.number}"
+        tmp_hash = preview_per_order(order, value)
+        skip_count =  tmp_hash[:skip_count]
+        total_send_products -= skip_count
+        if skip_count == order.inventory_units.size && tmp_hash[:ret].size == 0
+          puts "Order #{order.number} has been received by warehouse"
+          order_count -= 1            
+          next
+        end
+        
+
+        tmp_hash[:ret].each_pair do |variant_id, value|
+          icount += value["quantity"];
+          if product_overview_hash.has_key?(variant_id)
+            product_overview_hash[variant_id] += value["quantity"]
+          else
+            product_overview_hash[variant_id] = value["quantity"]
+          end
+        end                  
+      end
+
+      raise "products amount are not matched, Total-skip: #{total_send_products}, Total-left: #{icount}" if icount != total_send_products
+      puts "Total Order involved: " + order_count.to_s
+      puts "Total Products needs to be send: " + total_send_products.to_s
+      
+      puts "Quantity  -  Product Name"
+      product_overview_hash.each_pair do |key, value|
+        puts "#{value.to_s}  -  #{Spree::Variant.find(key).name_with_options_text}"
+      end
+
+      return preview_date      
+    end
     # return s3 url
     def export_to_csv(start_from, end_at)
       filename = "exalt-shipments-"+Time.now.strftime("%Y%m%d%H%M%S")
-      file = Tempfile.new( ["filename", '.csv'] )
+      file = Tempfile.new( [filename, '.csv'] )
       
       shipment_data = ShipmentCommonFunction::build_shipment_data(start_from, end_at, false)
 
@@ -117,7 +160,7 @@ module ShipInfo
       
       puts "Total products skipped: #{skip_count.to_s}"      
       som = Spree::ShippingOutputManifest.new
-      som.avatar_file_name = "a.txt"
+      som.avatar_file_name = filename + ".csv"
       som.avatar_content_type = "text/plain"
       som.avatar = file
       som.save
@@ -126,6 +169,14 @@ module ShipInfo
       return som.avatar.url
     end    
     
+    
+    def preview_per_order(order, value)
+      grouped_ui = Array.new
+      pending_iu_ids = ExaltWarehouseState.get_inventory_units_id_list(order)
+      skip_count = 0;
+      raise "we are not support multi shipments #{order.number}" if order.shipments.size > 1
+      return group_sold_inventory_units_more_details(order.shipment, pending_iu_ids)                                       
+    end
     
     def generate_per_order(csv, order, value)            
       # reference2 = ""
@@ -172,12 +223,13 @@ module ShipInfo
       skip_count +=  tmp_hash[:skip_count]
 
 
-
-      if skip_count == order.inventory_units.size && tmp_hash[:ret].size > 0
+      #puts "SKIP_COUNT: #{skip_count}, INS: #{order.inventory_units.size}, RETS: #{tmp_hash[:ret].size}"
+      if skip_count == order.inventory_units.size && tmp_hash[:ret].size == 0
         puts "Order #{order.number} has been received by warehouse"
         return skip_count
       end
       
+      #raise "Hello there!!!!" if skip_count == order.inventory_units.size 
       # if tmp_hash[:ret].size == 0
       #   backorder_count = 0
       #   order.inventory_units.each do |iu|
