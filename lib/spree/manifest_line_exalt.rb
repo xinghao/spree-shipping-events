@@ -17,10 +17,10 @@ module Spree
     ORDER_NOTE = "OrderNotes"
         
     STATUS = "Status"
-    attr_accessor :mail_send, :csv_line_amount, :reference1, :need_process, :manual_skip, :ware_house_state_string, :ware_house_state, :order_note, :shipment_manifest, :process_state, :process_msg, :skip, :multiple_product, :valid, :warning, :msg, :warning_msg, :order, :shipping_events, :inventory_units, :tracking_number, :se_numbers, :iu_ids, :order_qty, :shipping_units_amount, :ship_qty, :short_qty, :shipped, :carrier, :order_number, :already_processed, :status
+    attr_accessor :mail_send, :csv_line_amount, :reference1, :need_process, :manual_skip, :ware_house_state_string, :ware_house_state, :order_note, :shipment_manifest, :process_state, :process_msg, :skip, :multiple_product, :valid, :warning, :msg, :warning_msg, :order, :shipping_events, :inventory_units, :tracking_number, :se_numbers, :iu_ids, :order_qty, :shipping_units_amount, :ship_qty, :short_qty, :shipped, :carrier, :order_number, :already_processed, :status, :query_url
     
     def parse_single_line(reference1, csv_line)
-      ret_hash = {:iu_ids_array=> nil, :order_note => nil, :se_numbers_array=> nil, :tracking_number => nil, :ware_house_state => nil, :shipping_units_amount => 0, :order_qty => 0, :ship_qty => 0, :short_qty => 0, :shipped => nil, :status => nil}
+      ret_hash = {:iu_ids_array=> nil, :order_note => nil, :se_numbers_array=> nil, :tracking_number => nil, :ware_house_state => nil, :shipping_units_amount => 0, :order_qty => 0, :ship_qty => 0, :short_qty => 0, :shipped => nil, :status => nil, :carrier => nil}
       
       if !csv_line[ORDER_NUMBER].blank?
         ref1 = csv_line[ORDER_NUMBER].strip
@@ -58,8 +58,7 @@ module Spree
         ret_hash[:ware_house_state] = ews
       end 
                                           
-      ret_hash[:tracking_number] = csv_line[TRACKING_NUMBER].strip if !csv_line[TRACKING_NUMBER].blank?
-      carrier = csv_line[CARRIER].strip if !csv_line[CARRIER].blank?
+      ret_hash[:tracking_number] = csv_line[TRACKING_NUMBER].strip if !csv_line[TRACKING_NUMBER].blank?      
       ret_hash[:shipping_units_amount] = csv_line[SHIPPING_UNITS_AMOUNT].strip.to_i if !csv_line[SHIPPING_UNITS_AMOUNT].blank?
       ret_hash[:order_qty] = csv_line[ORDER_QTY].strip.to_i if !csv_line[ORDER_QTY].blank?
       ret_hash[:ship_qty] = csv_line[SHIP_QTY].strip.to_i if !csv_line[SHIP_QTY].blank?
@@ -73,6 +72,12 @@ module Spree
         product_code = csv_line[PRODUCT_CODE].strip 
       else
         raise "Product code is empty for #{reference1}"
+      end
+      
+      if !csv_line[CARRIER].blank?
+        ret_hash[:carrier] = csv_line[CARRIER].strip
+      else
+        raise "Carrier is empty for #{reference1}"
       end
       
       if !csv_line[PRODCUT_DESCRIPTION].blank?
@@ -131,7 +136,8 @@ module Spree
       @status = nil
       @order_note = nil
       @ware_house_state_string = nil
-
+      @carrier = nil
+      @query_url = nil
       
       raise "Does not have reference1" if reference1.blank?
       if Spree::ManifestLineExalt.manual_skip?(reference1)
@@ -163,7 +169,14 @@ module Spree
         elsif !ret[:tracking_number].blank?
           @tracking_number = ret[:tracking_number]
         end 
-        
+
+        # valid carrier
+        if !@carrier.blank? && ret[:carrier] != @carrier
+          raise "Carrier is not consistent for Reference1 #{reference1}"
+        elsif !ret[:carrier].blank?
+          @carrier = ret[:carrier]
+        end 
+                
         #valid status
         if !@status.blank? && ret[:status] != @status
           raise "mulitple status for Reference1 #{reference1}, #{@status} != #{ret[:status]}"
@@ -213,7 +226,7 @@ module Spree
         end                
       end
       
-      
+            
       #@status = status_tmp if !status_tmp.blank?
       return validate(se_numbers_list, iu_ids_list)
     end
@@ -258,6 +271,12 @@ module Spree
         return false
       end          
       
+      if @status == ExaltWarehouseState::SHIPPED
+        #validate carrier name
+        raise "carrier can not be empty for Reference1 #{reference1}" if @carrier.blank?
+        @query_url = ShipmentCarrier.get_query_url(@carrier)
+        raise "Unknow carrier #{@carrier} for Reference1 #{reference1}" if @query_url.blank?        
+      end
 
       if @status == ExaltWarehouseState::CANCELED && (!@tracking_number.blank? || @ship_qty != 0 )
         @msg = "canceled statndards not all met for order: #{@reference1}"
@@ -503,7 +522,12 @@ module Spree
                 se.shipped_at = Time.now
               else
                 se.shipped_at = @shipped
-              end              
+              end    
+              
+              if !@carrier.blank?
+                se.carrier = @carrier
+              end
+                        
               se.save
               se_log.process_state = "processed"
             else              
@@ -541,7 +565,7 @@ module Spree
           
           #if (!stop_sending_mail && changed && (!skip_mail || (only_send_to_backorder_users && !shipment.all_shipped?))) 
           if (!stop_sending_mail && changed && !skip_mail)
-            shipment.send_shipment_mail 
+            shipment.reload.send_shipment_mail 
             @mail_send = true
           end
           

@@ -4,13 +4,29 @@ Hooray!! Your order #<%=@shipment.order.number%> has been <%=@shipment.shipment_
 
 ============================================================
 Shipment Summary:
+<%icount = 0%>
 <% @shipment.group_shipped_inventory_units.each do |key, value| %>
+<% if icount > 0 %>
+  
+<%end%>
+<%icount += 1%>
 Parcel Tracking number: <%=value["tracking"]%>
 Parcel was shipped at: <%=value["shipped_at"]%>
 Parcel includes:
 <% value["units"].each_pair do |key, unit| %>
 <%=unit["sku"]%> <%=unit["name"]%> (<%=unit["quantity"]%>)
 <% end %>
+<%
+if !value["carrier"].blank?
+  carrier = ShipmentCarrier.get_carrier value["carrier"]
+  if !carrier.blank?
+    %>
+This package has been shipped by <%=carrier.presentation%>. 
+To track the order go to <%=carrier.query_url%> and enter the tracking number in.
+    <%
+  end
+end
+%>
 <% end %>
 ============================================================
 <% if !@shipment.order.ship_address.nil? %>
@@ -32,8 +48,6 @@ will receive the balance of your order please
 email support@betterbequick.com.au and quote your order number #<%=@shipment.order.number%>.
 ============================================================
 <% end %>
-
-Your package has been shipped by Australia Post. To track the order go to http://www.australiapost.com.au/track and enter the tracking number in.
 
 If you have any questions about this order or would like to contact our customer service team please email to support@betterbequick.com.au
 

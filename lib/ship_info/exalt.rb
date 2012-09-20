@@ -144,7 +144,7 @@ module ShipInfo
     end
     # return s3 url
     def export_to_csv(start_from, end_at)
-      filename = "exalt-shipments-"+Time.now.strftime("%Y%m%d%H%M%S")
+      filename = "exalt-shipments-"+Time.now.strftime("%Y%m%d%H%M%S") + "-" + Rails.env.to_s
       file = Tempfile.new( [filename, '.csv'] )
       
       shipment_data = ShipmentCommonFunction::build_shipment_data(start_from, end_at, false)
@@ -185,9 +185,8 @@ module ShipInfo
       company = ""  
       address1 = order.ship_address.address1
       address2 = order.ship_address.address2
-
       puts "address1 is more than 50: " + order.number.to_s if address1.length > 50
-      puts "address2 is more than 50: " + order.number.to_s if address2.length > 50
+      puts "address2 is more than 50: " + order.number.to_s if !address2.nil? && address2.length > 50
       
       suburb = order.ship_address.city
       state = order.ship_address.state_text

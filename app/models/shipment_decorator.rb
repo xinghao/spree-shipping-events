@@ -71,7 +71,7 @@ Spree::Shipment.class_eval do
               tmp[unit.variant_id] = {"quantity" => 1, "sku" => unit.variant.sku, "name" => unit.variant.name_with_options_text};
             end            
           end
-          retHash[event.tracking] = {"tracking" => event.tracking, "shipped_at" => event.shipped_at, "units" => tmp}
+          retHash[event.tracking] = {"tracking" => event.tracking, "shipped_at" => event.shipped_at, "carrier" => event.carrier, "units" => tmp}
         end
       end
     end  
