@@ -18,9 +18,9 @@ module ShipInfo
         break if (line_no - 1) > limit.to_i && limit > 0        
         reference1 = line[HEADER[0]].strip if !line[HEADER[0]].blank?
         reference2 = line[HEADER[1]].strip if !line[HEADER[1]].blank?
-        reference2 = Spree::LongStringMap.map(reference2);
+        #reference2 = Spree::LongStringMap.map(reference2);
         reference3 = line[HEADER[2]].strip if !line[HEADER[2]].blank?
-        reference3 = Spree::LongStringMap.map(reference3);
+        #reference3 = Spree::LongStringMap.map(reference3);
         raise "#{line_no.to_s}: reference is empty" if  reference1.blank? || reference2.blank? && reference3.blank?
         exalt_warehouse_state = ExaltWarehouseState.where("reference1 = ? and reference2 = ?", reference1, reference3).first
         raise "#{line_no.to_s}: shipping number is not matched!" if !exalt_warehouse_state.nil? && !exalt_warehouse_state.reference2 != reference2  
