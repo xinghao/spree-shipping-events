@@ -12,6 +12,7 @@ class ExaltWarehouseState < ActiveRecord::Base
       pending_iu_ids = Hash.new
       order.exalt_warehouse_states.each do |exalt_warehouse_state|
         reference3 = exalt_warehouse_state.reference3
+        reference3 = Spree::LongStringMap.map(reference3);
         # puts exalt_warehouse_state.id.to_s
         # puts reference3
         raise "exalt warehouse status reference 3 is empty for order #{order.number}" if reference3.blank? 
