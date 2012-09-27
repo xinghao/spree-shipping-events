@@ -7,6 +7,17 @@ class ExaltWarehouseState < ActiveRecord::Base
   SHIPPED = "shipped"
   CANCELED = "cancelled"
   
+  def self.make_hash_hash()
+    exalt_warehouse_states = ExaltWarehouseState.where("state = ? or state = ? or state = ?", ExaltWarehouseState::RECEIVED, ExaltWarehouseState::PENDING , ExaltWarehouseState::PRCESSED);
+    ret_hash = Hash.new
+    exalt_warehouse_states.each do |ews|
+      hash = "#{ews.reference1}-#{ews.reference2}-#{ews.reference3}"
+      raise "duplicate entries for exalt warehouse #{ews.id.to_s}"if ret_hash.has_key?(hash)
+      ret_hash[hash] = ews.id
+    end
+    raise "duplicate entries in exalt warehouse state" if ret_hash.size != exalt_warehouse_states.size
+    return ret_hash
+  end
   
   def self.get_inventory_units_id_list(order)      
       pending_iu_ids = Hash.new

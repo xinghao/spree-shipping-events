@@ -522,5 +522,47 @@ module ShipInfo
         return ret_hash
     end
     
+    def self.make_manifest_hash_hash(manifest_id)
+      sm = Spree::ShipmentManifest.find manifest_id
+      raise "Can not find manifest for id #{id}" if sm.blank?
+      
+      puts sm.avatar.url
+      
+      ret_hash = Hash.new
+      line_no = 0
+      CSV.new(open(sm.avatar.url), :headers => :first_row).each do |csv_line|
+        line_no += 1;  
+        if !csv_line[Spree::ManifestLineExalt::ORDER_NUMBER].blank?
+          ref1 = csv_line[Spree::ManifestLineExalt::ORDER_NUMBER].strip         
+        else
+          raise "Does not have reference1 for Line No: #{line_no}" 
+        end
+  
+        
+        if !csv_line[Spree::ManifestLineExalt::IU_IDS].blank?
+          ref3 = csv_line[Spree::ManifestLineExalt::IU_IDS].strip
+        else
+          raise "Does not have iu numbers for #{ref1}"
+        end 
+              
+  
+        if !csv_line[Spree::ManifestLineExalt::SE_NUMBERS].blank?
+          ref2 = csv_line[Spree::ManifestLineExalt::SE_NUMBERS].strip
+        else
+          raise "Does not have se numbers for #{ref1}"          
+        end
+        
+        hash = "#{ref1}-#{ref2}-#{ref3}"
+        raise "duplicate entries for manifest #{line_no}" if ret_hash.has_key?(hash)
+        ret_hash[hash] = {:line_no => line_no, :hash => hash, :reference1 => ref1, :reference2 => ref2, :reference3 => ref3}   
+                   
+      end
+      
+      raise "duplicate entries, line: #{line_no}, Hash: #{ret_hash.size}" if line_no != ret_hash.size
+      return ret_hash      
+    end
+    
+    
+    
   end   
 end

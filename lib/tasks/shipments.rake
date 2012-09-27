@@ -54,6 +54,24 @@ namespace :shipment do
     
   namespace :input do
     namespace :exalt do
+      desc "check bbq warehouse states entries in manifest"
+      task "whs_in_manifest", [:manifest_id] => [:environment] do |t, args|
+        manifest_id = args[:manifest_id]
+        manifest_entries = ShipInfo::Exalt.make_manifest_hash_hash(manifest_id)
+        ews_entries = ExaltWarehouseState.make_hash_hash
+        
+        puts "Manifest entries: #{manifest_entries.size}"
+        puts "BBQ Warehouse entries: #{ews_entries.size}"
+        missing_count = 0
+        ews_entries.each_pair do |key, id|
+          puts "Id: #{id}, Hash: #{key}" if !manifest_entries.has_key?(key)
+          missing_count += 1
+        end
+        
+        puts "Total #{missing_count} entries missing" if missing_count > 0
+      end
+      
+      
       desc "market manifest as processed"
       task "market_as_commit", [:manifest_id] => [:environment] do |t, args|
          manifest_id = args[:manifest_id]
