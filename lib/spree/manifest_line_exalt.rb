@@ -162,7 +162,7 @@ module Spree
         @ship_qty += ret[:ship_qty]
         @short_qty += ret[:short_qty]
         @shipped = DateTime.strptime(ret[:shipped], '%d/%m/%Y').to_time if !ret[:shipped].blank? 
-        raise "Is shipped at date is right? for Reference1 #{reference1}" if @shipped < (Time.now - 1.year)
+        raise "Is shipped at date is right? for Reference1 #{reference1}" if !@shipped.nil? && @shipped < (Time.now - 1.year)
         
         # valid tracking number
         if !@tracking_number.blank? && ret[:tracking_number] != @tracking_number
