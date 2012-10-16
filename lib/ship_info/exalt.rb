@@ -425,7 +425,7 @@ module ShipInfo
           cancel_count += line.csv_line_amount;
         elsif line.status == ExaltWarehouseState::SHIPPED
           shipped_count += line.csv_line_amount;
-        elsif line.status == ExaltWarehouseState::PRCESSED
+        elsif line.status == ExaltWarehouseState::PROCESSED
           processed_status_count += line.csv_line_amount;          
         else
           other_status_count += line.csv_line_amount;

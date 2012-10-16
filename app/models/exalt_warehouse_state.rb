@@ -8,7 +8,7 @@ class ExaltWarehouseState < ActiveRecord::Base
   CANCELED = "cancelled"
   
   def self.make_hash_hash()
-    exalt_warehouse_states = ExaltWarehouseState.where("state = ? or state = ? or state = ?", ExaltWarehouseState::RECEIVED, ExaltWarehouseState::PENDING , ExaltWarehouseState::PRCESSED);
+    exalt_warehouse_states = ExaltWarehouseState.where("state = ? or state = ? or state = ?", ExaltWarehouseState::RECEIVED, ExaltWarehouseState::PENDING , ExaltWarehouseState::PROCESSED);
     ret_hash = Hash.new
     exalt_warehouse_states.each do |ews|
       hash = "#{ews.reference1}-#{ews.reference2}-#{ews.reference3}"

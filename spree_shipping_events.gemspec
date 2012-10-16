@@ -2,7 +2,7 @@
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.name        = 'spree_shipping_events'
-  s.version     = '0.3.25'
+  s.version     = '0.3.26'
   s.summary     = 'spree shipping events'
   s.description = 'spree shipping events'
   s.required_ruby_version = '>= 1.8.7'

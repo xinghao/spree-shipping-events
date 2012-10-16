@@ -246,7 +246,7 @@ module Spree
 
       #valid status is known to us
       if @status != ExaltWarehouseState::PENDING &&     
-        @status != ExaltWarehouseState::PRCESSED &&
+        @status != ExaltWarehouseState::PROCESSED &&
         @status != ExaltWarehouseState::SHIPPED &&
         @status != ExaltWarehouseState::CANCELED
         @msg = "unknow exalt warehouse status #{@status} for order: #{@reference1}"
@@ -471,7 +471,7 @@ module Spree
           update_ews(@status)                    
         end
 
-        if @status == ExaltWarehouseState::PRCESSED
+        if @status == ExaltWarehouseState::PROCESSED
           @process_state = 8
           @process_msg = "changing to processed";
           update_ews(@status)                    
