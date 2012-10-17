@@ -115,7 +115,7 @@
           <% end %>
         </td>
         <td>
-          <%= shipping_event_form.text_field :carrier, :disabled =>"disabled" %>
+          <%= shipping_event_form.collection_select :carrier, ShipmentCarrier.all, :name, :name %>
         </td>        
         <td>
           <%if !shipping_event_form.object.shipping_event_log.nil?%>
