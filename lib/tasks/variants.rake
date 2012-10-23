@@ -58,10 +58,10 @@ namespace :variants do
       multi_count = 0;
       Spree::InventoryUnit.includes(:order => :inventory_units).where("variant_id = ? and state = ?", variant_id, state).order("id asc").find_each(:batch_size => 100) do |iu|
         if (iu.order.inventory_units.size > 1)
-          puts iu.order.number + ", multi-order: true"
+          puts iu.order.number + ", completed_at: #{iu.order.completed_at}" + ", multi-order: true"
           multi_count += 1
         else
-          puts iu.order.number + ", multi-order: false"
+          puts iu.order.number + ", completed_at: #{iu.order.completed_at}" + ", multi-order: false"
           single_count += 1
         end
         total_count += 1
