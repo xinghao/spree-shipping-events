@@ -172,7 +172,8 @@ module ShipInfo
     
     def preview_per_order(order, value)
       grouped_ui = Array.new
-      pending_iu_ids = ExaltWarehouseState.get_inventory_units_id_list(order)
+      #pending_iu_ids = ExaltWarehouseState.get_inventory_units_id_list(order)
+      pending_iu_ids = Hash.new
       skip_count = 0;
       raise "we are not support multi shipments #{order.number}" if order.shipments.size > 1
       return group_sold_inventory_units_more_details(order.shipment, pending_iu_ids)                                       
@@ -215,8 +216,8 @@ module ShipInfo
       skip_count = 0
       
       grouped_ui = Array.new
-      pending_iu_ids = ExaltWarehouseState.get_inventory_units_id_list(order)
-
+      #pending_iu_ids = ExaltWarehouseState.get_inventory_units_id_list(order)
+      pending_iu_ids = Hash.new
       skip_count = 0;
       tmp_hash = group_sold_inventory_units_more_details(s, pending_iu_ids)
       skip_count +=  tmp_hash[:skip_count]
