@@ -7,7 +7,26 @@ namespace :shipment do
           limit = args[:limit]
           limit = 0 if limit.blank?
           exalt = ShipInfo::Exalt.new
-          exalt.mark_order(manifest_id, limit, true)          
+          exalt.mark_order(manifest_id, limit, true, nil)          
+      end
+      
+      desc "mark all the orders as processing in warehouse"
+      task "mark_csv_url", [:url, :limit] => [:environment] do |t, args|
+          url = args[:url]
+          limit = args[:limit]
+          limit = 0 if limit.blank?
+          exalt = ShipInfo::Exalt.new
+          exalt.mark_order(nil, limit, false, url)          
+      end
+      
+
+      desc "valid mark all the orders as processing in warehouse"
+      task "mark_csv_url_valid", [:url, :limit] => [:environment] do |t, args|
+          url = args[:url]
+          limit = args[:limit]
+          limit = 0 if limit.blank?
+          exalt = ShipInfo::Exalt.new
+          exalt.mark_order(nil, limit, true, url)          
       end
       
       desc "mark all the orders as processing in warehouse"
@@ -16,9 +35,8 @@ namespace :shipment do
           limit = args[:limit]
           limit = 0 if limit.blank?
           exalt = ShipInfo::Exalt.new
-          exalt.mark_order(manifest_id, limit, false)          
+          exalt.mark_order(manifest_id, limit, false, nil)          
       end
-      
       
       desc "preview all current unshipped orders"
       task "preview_csv", [:start_from, :end_at] => [:environment] do |t, args|

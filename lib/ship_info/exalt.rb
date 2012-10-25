@@ -2,18 +2,22 @@ module ShipInfo
   class Exalt < ShipInfo::BasicHandler
     HEADER = ["Reference1",  "Reference2",  "Reference3",  "Name",  "Company", "Address1",  "Address2",  "Suburb",  "State", "Postcode",  "Country", "TelephoneNumber", "EmailAddress",  "CustomerInstructions",  "WarehouseInstructions", "FreightInstructions", "ProductCode", "Quantity",  "Description", "ProductType", "ImageLink", "SupplierCode",  "CarrierServiceCode",  "IsATLRequired"]
     
-    def mark_order(manifest_id, limit, validate)
-      sm = Spree::ShippingOutputManifest.find manifest_id
-      raise "Can not find manifest for id #{id}" if sm.blank?
-            
-      puts sm.avatar.url
+    def mark_order(manifest_id, limit, validate, url)
+      if (manifest_id != nil)
+        sm = Spree::ShippingOutputManifest.find manifest_id
+        raise "Can not find manifest for id #{id}" if sm.blank?
+        url = sm.avatar.url 
+      end            
+      puts url
+      
+      raise "either manifest id or url has not been set" if url.blank?
       
       pass_count = 0;
       process_count = 0;
       error_count = 0;
       duplicate_count = 0;
       line_no = 1
-      CSV.new(open(sm.avatar.url), :headers => :first_row).each do |line|
+      CSV.new(open(url), :headers => :first_row).each do |line|
         line_no += 1;        
         break if (line_no - 1) > limit.to_i && limit > 0        
         reference1 = line[HEADER[0]].strip if !line[HEADER[0]].blank?
