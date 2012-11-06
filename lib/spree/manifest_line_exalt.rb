@@ -38,7 +38,7 @@ module Spree
         raise "Does not have iu numbers for #{reference1}"
       end 
       
-      ret_hash[:ware_house_state] = ExaltWarehouseState.where("reference1 = ? and reference3 = ?", reference1, iu_ids).first      
+      ret_hash[:ware_house_state] = ExaltWarehouseState.where("reference1 = ? and reference3 = ?", reference1, reference3).first      
 
       if !csv_line[SE_NUMBERS].blank?
         reference2 = se_numbers = csv_line[SE_NUMBERS].strip        
