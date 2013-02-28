@@ -8,8 +8,10 @@ namespace :orders do
 
 
       skip_count = 0
+      total_cost = 0
       CSV.open(file.path(), "wb") do |csv|
         csv << ["Completed_at",  "Order Number",  "state",  "payment_state",  "email",  "payment_total",  "adjustment_total",  "credit_total", "total revenue", "total cost", "net revenue"]
+        puts "Completed_at,Order Number,state,payment_state,payment_total,adjustment_total,credit_total,total revenue,total cost,net revenue"
         Spree::Order.where("state = 'complete' and shipment_state = 'shipped'").order("completed_at asc").find_each(:batch_size => 1000) do |order|
           cost = 0;          
           order.inventory_units.each do |iu|
@@ -17,21 +19,22 @@ namespace :orders do
               cost += iu.variant.product.got_total_cost
             end
           end
-          
+          total_cost += cost
           csv << [order.completed_at, order.number, order.state, order.payment_state,  order.email, order.payment_total,  order.adjustment_total,  order.credit_total, order.total, cost, order.total - cost]
           
-          
+          puts "#{order.completed_at},#{order.number},#{order.state},#{order.payment_state},#{order.payment_total},#{order.adjustment_total},#{order.credit_total},#{order.total},#{cost},#{order.total - cost}"
         end                  
       end
                   
-      som = Spree::ShippingOutputManifest.new
-      som.avatar_file_name = filename + ".csv"
-      som.avatar_content_type = "text/plain"
-      som.avatar = file
+      # som = Spree::ShippingOutputManifest.new
+      # som.avatar_file_name = filename + ".csv"
+      # som.avatar_content_type = "text/plain"
+      # som.avatar = file
       #som.save
       file.delete()
+      puts "Total Cost: #{total_cost}" 
       
-      puts som.avatar.url
+      #puts som.avatar.url
 
 
        
