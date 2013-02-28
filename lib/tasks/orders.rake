@@ -1,6 +1,36 @@
 namespace :orders do
-    desc "stat the completed orders"
+  
+    desc "stats for the final orders"
     task "stats" => :environment do
+      filename = "order-stats-"+Time.now.strftime("%Y%m%d%H%M%S") + "-" + Rails.env.to_s
+      file = Tempfile.new( [filename, '.csv'] )
+      
+
+
+      skip_count = 0
+      CSV.open(file.path(), "wb") do |csv|
+        csv << ["Completed_at",  "Order Number",  "state",  "payment_state",  "email", "total",  "payment_total",  "adjustment_total",  "credit_total"]
+        Spree::Order.where("state = 'complete' and shipment_state = 'shipped'").order("completed_at asc").find_each(:batch_size => 1000) do |order|
+          csv << [order.completed_at, order.number, order.state, order.payment_state,  order.email, order.total,  order.payment_total,  order.adjustment_total,  order.credit_total]
+        end                  
+      end
+                  
+      som = Spree::ShippingOutputManifest.new
+      som.avatar_file_name = filename + ".csv"
+      som.avatar_content_type = "text/plain"
+      som.avatar = file
+      som.save
+      file.delete()
+      
+      return som.avatar.url
+
+
+       
+        
+    end
+    
+    desc "stat the completed orders"
+    task "sum_stats" => :environment do
       complete_total = Spree::Order.complete.count
       cancelled = Spree::Order.where("state = 'canceled'").count
       complete_paid = Spree::Order.where("state = 'complete' and payment_state = 'paid'").count
